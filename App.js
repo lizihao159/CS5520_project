@@ -6,20 +6,20 @@ import Input from './components/Input';
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
-  const [inputText, setInputText] = useState(''); // State to store input from child
-  const [modalVisible, setModalVisible] = useState(false); // State to control modal visibility
+  const [inputText, setInputText] = useState(''); 
+  const [modalVisible, setModalVisible] = useState(false); 
 
-  // Callback function to handle the data received from Input.js
+  // Callback function
   const handleInputData = (text) => {
-    setInputText(text); // Set the input text from the child component
-    setModalVisible(false); // Hide the modal once the user adds a goal
+    setInputText(text); // Set the input text
+    setModalVisible(false); // Hide the modal after user type the goal
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top section with header and button */}
+      {/* Top section with header */}
       <View style={styles.topSection}>
         <Header name={appName}></Header>
 
@@ -36,7 +36,7 @@ export default function App() {
         </View>
       </View>
 
-      {/* Pass the modal visibility */}
+      {/* Pass the modal and the callback function to the Input */}
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} />
     </SafeAreaView>
   );
@@ -48,19 +48,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topSection: {
-    flex: 1, // 1/5th of the screen
+    flex: 1, // 1/5 of the screen
     justifyContent: 'space-between', // Space between header and button
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 35, 
+    paddingVertical: 30, // Padding to give space at the top
   },
   buttonContainer: {
     alignSelf: 'stretch', 
     justifyContent: 'flex-end', // place the button at the bottom
-    alignItems: 'center', // Center the button horizontally
+    alignItems: 'center', // place the button in the center
   },
   bottomSection: {
-    flex: 4, // 4/5ths of the screen
+    flex: 4, // 4/5 of the screen
     backgroundColor: '#d8bfd8', // Light purple background
     justifyContent: 'flex-start', // Align content to the top
     alignItems: 'center', // Align horizontally in the center
@@ -69,10 +69,10 @@ const styles = StyleSheet.create({
   textWrapper: {
     backgroundColor: '#d3d3d3', 
     padding: 10,
-    borderRadius: 10, // Rounded corners for the View
+    borderRadius: 10, // Rounded corners
   },
   goalText: {
     fontSize: 20,
-    color: 'blue', // Text color set to blue
+    color: 'blue', // set the text color into blue
   },
 });
