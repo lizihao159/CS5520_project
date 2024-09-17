@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
@@ -16,19 +16,29 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      <Header name={appName}></Header>
 
-      {/* Button to trigger the modal visibility */}
-      <Button title="Add a goal" onPress={() => setModalVisible(true)} />
+      {/* Top section with header and button */}
+      <View style={styles.topSection}>
+        <Header name={appName}></Header>
 
-      {/* Pass the modal visibility and the callback function to the Input component */}
+        {/* Align button at the bottom of the white area */}
+        <View style={styles.buttonContainer}>
+          <Button title="Add a goal" onPress={() => setModalVisible(true)} />
+        </View>
+      </View>
+
+      {/* Bottom section where the goal is displayed */}
+      <View style={styles.bottomSection}>
+        <View style={styles.textWrapper}>
+          <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
+        </View>
+      </View>
+
+      {/* Pass the modal visibility */}
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} />
-
-      {/* Display the input text received from the Input component */}
-      <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -36,12 +46,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  topSection: {
+    flex: 1, // 1/5th of the screen
+    justifyContent: 'space-between', // Space between header and button
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 35, 
+  },
+  buttonContainer: {
+    alignSelf: 'stretch', 
+    justifyContent: 'flex-end', // place the button at the bottom
+    alignItems: 'center', // Center the button horizontally
+  },
+  bottomSection: {
+    flex: 4, // 4/5ths of the screen
+    backgroundColor: '#d8bfd8', // Light purple background
+    justifyContent: 'flex-start', // Align content to the top
+    alignItems: 'center', // Align horizontally in the center
+    paddingTop: 20, // Add some padding at the top
+  },
+  textWrapper: {
+    backgroundColor: '#d3d3d3', 
+    padding: 10,
+    borderRadius: 10, // Rounded corners for the View
   },
   goalText: {
     fontSize: 20,
-    color: 'brown',
-    marginTop: 20, 
+    color: 'blue', // Text color set to blue
   },
 });
