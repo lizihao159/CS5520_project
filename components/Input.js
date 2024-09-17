@@ -25,14 +25,14 @@ export default function Input({ autoFocus, onConfirm, isVisible }) {
 
     const handleFocus = () => {
         setIsFocused(true);
-        setMessage(''); // Clear message on focus
+        setMessage(''); 
     };
 
     // Event handler for Confirm button
     const handleConfirm = () => {
         console.log(`User typed: ${text}`); // Logs text input
         if (onConfirm) {
-            onConfirm(text); // Call the callback function and pass the text as a parameter
+            onConfirm(text);
         }
         setText(''); // Reset the input after confirm
     };
@@ -40,30 +40,33 @@ export default function Input({ autoFocus, onConfirm, isVisible }) {
     return (
         <Modal
             visible={isVisible}
-            animationType="slide" // Makes the modal slide from the bottom
+            animationType="slide"
+            transparent={true} // Make the modal background transparent
         >
-            <View style={styles.container}>
-                <TextInput
-                    ref={inputRef}
-                    placeholder="Start typing here"
-                    autoCorrect={true}
-                    keyboardType="default"
-                    value={text}
-                    style={styles.input}
-                    onChangeText={(text) => setText(text)}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                />
-                {isFocused && text.length > 0 ? (
-                    <Text style={styles.charCount}>Character count: {text.length}</Text>
-                ) : null}
-                {!isFocused && message ? (
-                    <Text style={styles.message}>{message}</Text>
-                ) : null}
-                
-                {/* Add Confirm button */}
-                <View style={styles.buttonContainer}>
-                    <Button title="Confirm" onPress={handleConfirm} />
+            <View style={styles.modalBackground}>
+                <View style={styles.innerContainer}>
+                    <TextInput
+                        ref={inputRef}
+                        placeholder="Type something"
+                        autoCorrect={true}
+                        keyboardType="default"
+                        value={text}
+                        style={styles.input}
+                        onChangeText={(text) => setText(text)}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                    />
+                    {isFocused && text.length > 0 ? (
+                        <Text style={styles.charCount}>Character count: {text.length}</Text>
+                    ) : null}
+                    {!isFocused && message ? (
+                        <Text style={styles.message}>{message}</Text>
+                    ) : null}
+                    
+                    {/* Add Confirm button */}
+                    <View style={styles.buttonContainer}>
+                        <Button title="Confirm" onPress={handleConfirm} />
+                    </View>
                 </View>
             </View>
         </Modal>
@@ -71,16 +74,24 @@ export default function Input({ autoFocus, onConfirm, isVisible }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    modalBackground: {
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    innerContainer: {
         backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10, // Rounded corners
+        width: '80%',
         alignItems: 'center',
         justifyContent: 'center',
     },
     input: {
         borderBottomColor: 'purple',
         borderBottomWidth: 2,
-        width: '80%', // Adjust width
+        width: '80%',
         textAlign: 'center',
         fontSize: 18,
         marginBottom: 20, // Space below the input field
@@ -96,7 +107,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     buttonContainer: {
-        width: '30%', // Make button take 30% of the available width
-        marginTop: 20,
+        width: '30%', // Make button take 30% of the rest width
+        marginTop: 20, 
     }
 });
