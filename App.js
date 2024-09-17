@@ -5,12 +5,24 @@ import { useState } from 'react';
 import Input from './components/Input';
 
 export default function App() {
-  const appName = 'My app!';
+  const appName = 'Welcome to My Awesome app!';
+  const [inputText, setInputText] = useState('');
+
+  
+  const handleInputData = (text) => {
+    setInputText(text); 
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Header name={appName}></Header>
-      <Input autoFocus={true} />
+  
+        {/* Input component with autoFocus and onConfirm props */}
+      <Input autoFocus={true} onConfirm={handleInputData} />
+
+
+      <Text>{inputText ? `You typed: ${inputText}` : ''}</Text>
     </View>
   );
 }

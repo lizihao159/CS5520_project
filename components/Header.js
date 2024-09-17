@@ -1,10 +1,26 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 
 export default function Header({ name }) {
     return (
-        <View>
-            <Text>Welcome to {name}</Text>
+        <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>{name}</Text>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    headerContainer: {
+        borderWidth: 2, // Adding a border
+        borderColor: 'purple', // Border color
+        padding: 10, // Add padding inside the border
+        borderRadius: 10, // Rounded corners
+        marginBottom: 10, // Add space below the header
+    },
+    headerText: {
+        color: 'purple', // Purple text color
+        fontSize: 18, 
+        fontWeight: 'bold', 
+        textAlign: 'center', 
+    },
+});

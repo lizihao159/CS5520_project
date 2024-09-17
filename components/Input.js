@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TextInput, Text, View } from 'react-native';
+import { TextInput, Text, View, Button } from 'react-native';
 
-export default function Input({ autoFocus }) {
+export default function Input({ autoFocus, onConfirm }) { // Added onConfirm prop
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [message, setMessage] = useState('');
@@ -25,7 +25,15 @@ export default function Input({ autoFocus }) {
 
     const handleFocus = () => {
         setIsFocused(true);
-        setMessage(''); // Clear message on focus
+        setMessage(''); 
+    };
+
+    // Event handler for Confirm button
+    const handleConfirm = () => {
+        console.log(`User typed: ${text}`); 
+        if (onConfirm) {
+            onConfirm(text); 
+        }
     };
 
     return (
@@ -53,6 +61,9 @@ export default function Input({ autoFocus }) {
             {!isFocused && message ? (
                 <Text>{message}</Text>
             ) : null}
+            
+            {/* Add Confirm button */}
+            <Button title="Confirm" onPress={handleConfirm} />
         </View>
     );
 }
