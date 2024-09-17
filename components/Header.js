@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
         borderColor: 'purple', // Border color
         padding: 10, // Add padding inside the border
         borderRadius: 10, // Rounded corners
-        marginBottom: 10, // Add space below the header
+        marginBottom: 10, 
     },
     headerText: {
         color: 'purple', // Purple text color

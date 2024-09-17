@@ -5,14 +5,14 @@ import { useState } from 'react';
 import Input from './components/Input';
 
 export default function App() {
-  const appName = 'Welcome to My Awesome app!';
+  const appName = 'Welcome to My awesome app!';
   const [inputText, setInputText] = useState(''); // State to store input from child
   const [modalVisible, setModalVisible] = useState(false); // State to control modal visibility
 
   // Callback function to handle the data received from Input.js
   const handleInputData = (text) => {
-    setInputText(text); // Set the input text
-    setModalVisible(false); // Hide the modal after the user adds a goal
+    setInputText(text); // Set the input text from the child component
+    setModalVisible(false); // Hide the modal once the user adds a goal
   };
 
   return (
@@ -26,8 +26,8 @@ export default function App() {
       {/* Pass the modal visibility and the callback function to the Input component */}
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} />
 
-      {/* Display the input text after user typed*/}
-      <Text>{inputText ? `You typed: ${inputText}` : ''}</Text>
+      {/* Display the input text received from the Input component */}
+      <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
     </View>
   );
 }
@@ -38,5 +38,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  goalText: {
+    fontSize: 20,
+    color: 'brown',
+    marginTop: 20, 
   },
 });
