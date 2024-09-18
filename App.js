@@ -6,38 +6,39 @@ import Input from './components/Input';
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
-  const [inputText, setInputText] = useState(''); 
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [inputText, setInputText] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Callback function
   const handleInputData = (text) => {
-    setInputText(text); // Set the input text
-    setModalVisible(false); // Hide the modal after user type the goal
+    setInputText(text); 
+    setModalVisible(false); // Hide the modal after user make a confirm action
+  };
+
+  // Callback for canceling the input
+  const handleCancel = () => {
+    setModalVisible(false); // Hide the modal after user make a cancel action
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top section with header */}
+      {/* Top section */}
       <View style={styles.topSection}>
         <Header name={appName}></Header>
-
-        {/* Align button at the bottom of the white area */}
-        <View style={styles.buttonContainer}>
-          <Button title="Add a goal" onPress={() => setModalVisible(true)} />
-        </View>
+        <Button title="Add a goal" onPress={() => setModalVisible(true)} />
       </View>
 
-      {/* Bottom section where the goal is displayed */}
+      {/* Bottom section */}
       <View style={styles.bottomSection}>
         <View style={styles.textWrapper}>
           <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
         </View>
       </View>
 
-      {/* Pass the modal and the callback function to the Input */}
-      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} />
+      {/* Pass the modal visibility and the callback function*/}
+      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
     </SafeAreaView>
   );
 }
@@ -48,31 +49,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topSection: {
-    flex: 1, // 1/5 of the screen
-    justifyContent: 'space-between', // Space between header and button
+    flex: 1, // 1/5 space of the screen
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 30, // Padding to give space at the top
-  },
-  buttonContainer: {
-    alignSelf: 'stretch', 
-    justifyContent: 'flex-end', // place the button at the bottom
-    alignItems: 'center', // place the button in the center
   },
   bottomSection: {
-    flex: 4, // 4/5 of the screen
+    flex: 4, // 4/5 space of the screen
     backgroundColor: '#d8bfd8', // Light purple background
     justifyContent: 'flex-start', // Align content to the top
-    alignItems: 'center', // Align horizontally in the center
-    paddingTop: 20, // Add some padding at the top
+    alignItems: 'center',
+    paddingTop: 20, 
   },
   textWrapper: {
-    backgroundColor: '#d3d3d3', 
+    backgroundColor: '#d3d3d3', // Light gray background 
     padding: 10,
-    borderRadius: 10, // Rounded corners
+    borderRadius: 10, // Rounded corners 
   },
   goalText: {
     fontSize: 20,
-    color: 'blue', // set the text color into blue
+    color: 'blue', // Text color set to blue
   },
 });

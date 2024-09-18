@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TextInput, Text, View, Button, Modal, StyleSheet } from 'react-native';
+import { TextInput, Text, View, Button, Modal, StyleSheet, Alert, Image } from 'react-native';
 
-export default function Input({ autoFocus, onConfirm, isVisible }) {
+export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [message, setMessage] = useState('');
+    const [isConfirmDisabled, setIsConfirmDisabled] = useState(true);
     const inputRef = useRef(null);
 
     // This effect handles autoFocus if the prop is passed
@@ -25,26 +26,61 @@ export default function Input({ autoFocus, onConfirm, isVisible }) {
 
     const handleFocus = () => {
         setIsFocused(true);
-        setMessage(''); 
+        setMessage(''); // Clear message on focus
     };
 
-    // Event handler for Confirm button
+    // Handle Confirm button press
     const handleConfirm = () => {
-        console.log(`User typed: ${text}`); // Logs text input
-        if (onConfirm) {
-            onConfirm(text);
-        }
-        setText(''); // Reset the input after confirm
+        onConfirm(text); // Pass text to the parent via callback
+        setText(''); // Clear the input
     };
+
+    // Handle Cancel button press with Alert message
+    const handleCancel = () => {
+        Alert.alert(
+            "Cancel Confirmation",
+            "Are you sure you want to cancel?",
+            [
+                {
+                    text: "No",
+                    style: "cancel"
+                },
+                {
+                    text: "OK", 
+                    onPress: () => {
+                        onCancel(); // Call the cancel callback
+                        setText(''); // Clear the input
+                    }
+                }
+            ]
+        );
+    };
+
+    // Disable confirm button until minimum characters are typed
+    useEffect(() => {
+        setIsConfirmDisabled(text.length < 3);
+    }, [text]);
 
     return (
         <Modal
             visible={isVisible}
             animationType="slide"
-            transparent={true} // Make the modal background transparent
+            transparent={true}
         >
             <View style={styles.modalBackground}>
                 <View style={styles.innerContainer}>
+                    {/* Two images */}
+                    <Image
+                        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2617/2617812.png' }} // url image
+                        style={styles.image}
+                        alt="Target Icon from URL"
+                    />
+                    <Image
+                        source={require('../assets/target.png')} // Local image
+                        style={styles.image}
+                        alt="Local Target Icon"
+                    />
+
                     <TextInput
                         ref={inputRef}
                         placeholder="Type something"
@@ -62,10 +98,12 @@ export default function Input({ autoFocus, onConfirm, isVisible }) {
                     {!isFocused && message ? (
                         <Text style={styles.message}>{message}</Text>
                     ) : null}
-                    
-                    {/* Add Confirm button */}
-                    <View style={styles.buttonContainer}>
-                        <Button title="Confirm" onPress={handleConfirm} />
+
+                    {/* Button Row for Confirm and Cancel */}
+                    <View style={styles.buttonRow}>
+                        <Button title="Cancel" color="gray" onPress={handleCancel} />
+                        <View style={styles.buttonSpacing} />
+                        <Button title="Confirm" onPress={handleConfirm} disabled={isConfirmDisabled} />
                     </View>
                 </View>
             </View>
@@ -83,7 +121,7 @@ const styles = StyleSheet.create({
     innerContainer: {
         backgroundColor: '#fff',
         padding: 20,
-        borderRadius: 10, // Rounded corners
+        borderRadius: 10,
         width: '80%',
         alignItems: 'center',
         justifyContent: 'center',
@@ -94,7 +132,7 @@ const styles = StyleSheet.create({
         width: '80%',
         textAlign: 'center',
         fontSize: 18,
-        marginBottom: 20, // Space below the input field
+        marginBottom: 20,
     },
     charCount: {
         fontSize: 16,
@@ -106,8 +144,17 @@ const styles = StyleSheet.create({
         color: 'red',
         marginBottom: 20,
     },
-    buttonContainer: {
-        width: '30%', // Make button take 30% of the rest width
-        marginTop: 20, 
-    }
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    buttonSpacing: {
+        width: 20, 
+    },
+    image: {
+        width: 100,
+        height: 100,
+        marginBottom: 20,
+    },
 });
