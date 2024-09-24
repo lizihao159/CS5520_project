@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, View, Button, FlatList } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
-import GoalItem from './components/GoalItem'; 
+import GoalItem from './components/GoalItem';
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
@@ -12,9 +12,14 @@ export default function App() {
 
   // Callback function to add a new goal
   const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random().toString() }; // Create new goal object with random id
+    const newGoal = { text: text, id: Math.random()}; // Create new goal object with random id
     setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
+  };
+
+  // Callback function to delete a goal
+  const handleDeleteGoal = (goalId) => {
+    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId)); // Filter out the goal with the given id
   };
 
   // Callback for canceling the input
@@ -36,9 +41,11 @@ export default function App() {
       <FlatList
         style={styles.flatList}
         data={goals} // Data source for FlatList
-        renderItem={({ item }) => <GoalItem goal={item} />} // Use GoalItem component to render each goal
+        renderItem={({ item }) => (
+          <GoalItem goal={item} onDelete={handleDeleteGoal} /> // Pass the onDelete callback
+        )}
         keyExtractor={(item) => item.id} // Unique key for each item
-        showsVerticalScrollIndicator={true} // Optional: Show vertical scroll indicator
+        showsVerticalScrollIndicator={true} // Show vertical scroll indicator
         contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
       />
 
@@ -52,15 +59,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 6,
   },
   topSection: {
     height: 120, // Fixed height for the top section
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingTop: 60,
-    marginBottom: 30,
+    paddingTop: 20,
   },
   flatList: {
     flex: 1, // FlatList will take the remaining space
