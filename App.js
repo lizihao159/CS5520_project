@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, Button, ScrollView } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button, FlatList } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
@@ -31,20 +31,21 @@ export default function App() {
         <Button title="Add a goal" onPress={() => setModalVisible(true)} />
       </View>
 
-      {/* Bottom section */}
-      <ScrollView 
-        style={styles.scrollContainer} // Make sure ScrollView takes remaining space
-        contentContainerStyle={styles.scrollContentContainer} 
-        showsVerticalScrollIndicator={true} // Optional: Show vertical scroll indicator
-      >
-        {goals.map((goal) => (
-          <View key={goal.id} style={styles.textWrapper}>
-            <Text style={styles.goalText}>{goal.text}</Text>
+      {/* Replacing ScrollView with FlatList */}
+      <FlatList
+        style={styles.flatList}
+        data={goals} // Data source for FlatList
+        renderItem={({ item }) => (
+          <View style={styles.textWrapper}>
+            <Text style={styles.goalText}>{item.text}</Text>
           </View>
-        ))}
-      </ScrollView>
+        )}
+        keyExtractor={(item) => item.id} // Unique key for each item
+        showsVerticalScrollIndicator={true} // Optional: Show vertical scroll indicator
+        contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
+      />
 
-      {/* Pass the modal visibility and the callback function*/}
+      {/* Pass the modal visibility and the callback function */}
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
     </SafeAreaView>
   );
@@ -62,8 +63,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: 20,
   },
-  scrollContainer: {
-    flex: 1, // Allow ScrollView to take the remaining space
+  flatList: {
+    flex: 1, // FlatList will take the remaining space
   },
   scrollContentContainer: {
     flexGrow: 1, // Allow content to grow
