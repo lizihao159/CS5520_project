@@ -1,43 +1,56 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, Button } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Button, FlatList } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
+import GoalItem from './components/GoalItem';
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
-  const [inputText, setInputText] = useState(''); 
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [goals, setGoals] = useState([]); // State to store list of goals
+  const [modalVisible, setModalVisible] = useState(false);
 
-  // Callback function
+  // Callback function to add a new goal
   const handleInputData = (text) => {
-    setInputText(text); // Set the input text
-    setModalVisible(false); // Hide the modal after user type the goal
+    const newGoal = { text: text, id: Math.random()}; // Create new goal object with random id
+    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+    setModalVisible(false); // Hide modal
+  };
+
+  // Callback function to delete a goal
+  const handleDeleteGoal = (goalId) => {
+    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId)); // Filter out the goal with the given id
+  };
+
+  // Callback for canceling the input
+  const handleCancel = () => {
+    setModalVisible(false); // Hide the modal after user cancels
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top section with header */}
+      {/* Top section */}
       <View style={styles.topSection}>
         <Header name={appName}></Header>
-
-        {/* Align button at the bottom of the white area */}
-        <View style={styles.buttonContainer}>
-          <Button title="Add a goal" onPress={() => setModalVisible(true)} />
-        </View>
+        <Button title="Add a goal" onPress={() => setModalVisible(true)} />
       </View>
 
-      {/* Bottom section where the goal is displayed */}
-      <View style={styles.bottomSection}>
-        <View style={styles.textWrapper}>
-          <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
-        </View>
-      </View>
+      {/* Use FlatList to display goals */}
+      <FlatList
+        style={styles.flatList}
+        data={goals} // Data source for FlatList
+        renderItem={({ item }) => (
+          <GoalItem goal={item} onDelete={handleDeleteGoal} /> // Pass the onDelete callback
+        )}
+        keyExtractor={(item) => item.id} // Unique key for each item
+        showsVerticalScrollIndicator={true} // Show vertical scroll indicator
+        contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
+      />
 
-      {/* Pass the modal and the callback function to the Input */}
-      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} />
+      {/* Pass the modal visibility and the callback function */}
+      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
     </SafeAreaView>
   );
 }
@@ -48,31 +61,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topSection: {
-    flex: 1, // 1/5 of the screen
-    justifyContent: 'space-between', // Space between header and button
+    height: 120, // Fixed height for the top section
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 30, // Padding to give space at the top
+    paddingTop: 20,
   },
-  buttonContainer: {
-    alignSelf: 'stretch', 
-    justifyContent: 'flex-end', // place the button at the bottom
-    alignItems: 'center', // place the button in the center
+  flatList: {
+    flex: 1, // FlatList will take the remaining space
   },
-  bottomSection: {
-    flex: 4, // 4/5 of the screen
-    backgroundColor: '#d8bfd8', // Light purple background
+  scrollContentContainer: {
+    flexGrow: 1, // Allow content to grow
+    backgroundColor: '#d8bfd8',
     justifyContent: 'flex-start', // Align content to the top
-    alignItems: 'center', // Align horizontally in the center
-    paddingTop: 20, // Add some padding at the top
-  },
-  textWrapper: {
-    backgroundColor: '#d3d3d3', 
-    padding: 10,
-    borderRadius: 10, // Rounded corners
-  },
-  goalText: {
-    fontSize: 20,
-    color: 'blue', // set the text color into blue
+    alignItems: 'center',
+    paddingVertical: 20, // Space between the goals and the edges
   },
 });
