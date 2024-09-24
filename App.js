@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, Button, FlatList } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button, ScrollView } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
@@ -10,9 +10,9 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
 
   // Callback function to add a new goal
-  const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random().toString() }; // Create new goal object with random id
-    setGoals((currentGoals) => [...currentGoals, newGoal]); // Add new goal to the list using spread operator
+  const handleInputData = (data) => {
+    const newGoal = { text: data, id: Math.random() }; // Create new goal object with random id
+    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -32,17 +32,16 @@ export default function App() {
       </View>
 
       {/* Bottom section */}
-      <View style={styles.bottomSection}>
-        <FlatList
-          data={goals}
-          renderItem={(itemData) => (
-            <View style={styles.textWrapper}>
-              <Text style={styles.goalText}>{itemData.item.text}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.id}
-        />
-      </View>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer} 
+        showsVerticalScrollIndicator={true} // Optional: Hides the vertical scroll indicator
+      >
+        {goals.map((goal) => (
+          <View key={goal.id} style={styles.textWrapper}>
+            <Text style={styles.goalText}>{goal.text}</Text>
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Pass the modal visibility and the callback function*/}
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
@@ -61,22 +60,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  bottomSection: {
-    flex: 4, // 4/5 space of the screen
+  scrollContainer: {
+    flexGrow: 1, // This makes the ScrollView grow and fill the available space
     backgroundColor: '#d8bfd8', // Light purple background
     justifyContent: 'flex-start', // Align content to the top
     alignItems: 'center',
-    paddingTop: 20, 
+    paddingVertical: 20, // Space between the goals and the edges
   },
   textWrapper: {
     backgroundColor: '#d3d3d3', // Light gray background 
     padding: 10,
-    borderRadius: 6, // Rounded corners 
+    borderRadius: 10, // Rounded corners 
     marginVertical: 10, // Spacing between goals
   },
   goalText: {
     fontSize: 20,
     color: 'blue', // Text color set to blue
-    borderRadius: 6, // Rounded corners
   },
 });
