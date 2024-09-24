@@ -1,23 +1,24 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, Button } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button, FlatList } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
-  const [inputText, setInputText] = useState('');
+  const [goals, setGoals] = useState([]); // State to store list of goals
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Callback function
+  // Callback function to add a new goal
   const handleInputData = (text) => {
-    setInputText(text); 
-    setModalVisible(false); // Hide the modal after user make a confirm action
+    const newGoal = { text: text, id: Math.random().toString() }; // Create new goal object with random id
+    setGoals((currentGoals) => [...currentGoals, newGoal]); // Add new goal to the list using spread operator
+    setModalVisible(false); // Hide modal
   };
 
   // Callback for canceling the input
   const handleCancel = () => {
-    setModalVisible(false); // Hide the modal after user make a cancel action
+    setModalVisible(false); // Hide the modal after user cancels
   };
 
   return (
@@ -32,9 +33,15 @@ export default function App() {
 
       {/* Bottom section */}
       <View style={styles.bottomSection}>
-        <View style={styles.textWrapper}>
-          <Text style={styles.goalText}>{inputText ? inputText : ''}</Text>
-        </View>
+        <FlatList
+          data={goals}
+          renderItem={(itemData) => (
+            <View style={styles.textWrapper}>
+              <Text style={styles.goalText}>{itemData.item.text}</Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.id}
+        />
       </View>
 
       {/* Pass the modal visibility and the callback function*/}
@@ -64,10 +71,12 @@ const styles = StyleSheet.create({
   textWrapper: {
     backgroundColor: '#d3d3d3', // Light gray background 
     padding: 10,
-    borderRadius: 10, // Rounded corners 
+    borderRadius: 6, // Rounded corners 
+    marginVertical: 10, // Spacing between goals
   },
   goalText: {
     fontSize: 20,
     color: 'blue', // Text color set to blue
+    borderRadius: 6, // Rounded corners
   },
 });
