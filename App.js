@@ -10,9 +10,9 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
 
   // Callback function to add a new goal
-  const handleInputData = (data) => {
-    const newGoal = { text: data, id: Math.random() }; // Create new goal object with random id
-    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+  const handleInputData = (text) => {
+    const newGoal = { text: text, id: Math.random().toString() }; // Create new goal object with random id
+    setGoals((currentGoals) => [...currentGoals, newGoal]); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -33,8 +33,9 @@ export default function App() {
 
       {/* Bottom section */}
       <ScrollView 
-        contentContainerStyle={styles.scrollContainer} 
-        showsVerticalScrollIndicator={true} // Optional: Hides the vertical scroll indicator
+        style={styles.scrollContainer} // Make sure ScrollView takes remaining space
+        contentContainerStyle={styles.scrollContentContainer} 
+        showsVerticalScrollIndicator={true} // Optional: Show vertical scroll indicator
       >
         {goals.map((goal) => (
           <View key={goal.id} style={styles.textWrapper}>
@@ -55,14 +56,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topSection: {
-    flex: 1, // 1/5 space of the screen
+    height: 120, // Fixed height for the top section
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+    paddingTop: 20,
   },
   scrollContainer: {
-    flexGrow: 1, // This makes the ScrollView grow and fill the available space
-    backgroundColor: '#d8bfd8', // Light purple background
+    flex: 1, // Allow ScrollView to take the remaining space
+  },
+  scrollContentContainer: {
+    flexGrow: 1, // Allow content to grow
+    backgroundColor: '#d8bfd8',
     justifyContent: 'flex-start', // Align content to the top
     alignItems: 'center',
     paddingVertical: 20, // Space between the goals and the edges
@@ -74,7 +79,7 @@ const styles = StyleSheet.create({
     marginVertical: 10, // Spacing between goals
   },
   goalText: {
-    fontSize: 20,
+    fontSize: 150, // Adjusted font size for readability
     color: 'blue', // Text color set to blue
   },
 });
