@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, Button, FlatList } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Button, FlatList } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
+import GoalItem from './components/GoalItem'; 
 
 export default function App() {
   const appName = 'Welcome to My awesome app!';
@@ -12,7 +13,7 @@ export default function App() {
   // Callback function to add a new goal
   const handleInputData = (text) => {
     const newGoal = { text: text, id: Math.random().toString() }; // Create new goal object with random id
-    setGoals((currentGoals) => [...currentGoals, newGoal]); // Add new goal to the list using spread operator
+    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -31,15 +32,11 @@ export default function App() {
         <Button title="Add a goal" onPress={() => setModalVisible(true)} />
       </View>
 
-      {/* Replacing ScrollView with FlatList */}
+      {/* Use FlatList to display goals */}
       <FlatList
         style={styles.flatList}
         data={goals} // Data source for FlatList
-        renderItem={({ item }) => (
-          <View style={styles.textWrapper}>
-            <Text style={styles.goalText}>{item.text}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => <GoalItem goal={item} />} // Use GoalItem component to render each goal
         keyExtractor={(item) => item.id} // Unique key for each item
         showsVerticalScrollIndicator={true} // Optional: Show vertical scroll indicator
         contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
@@ -55,13 +52,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    borderRadius: 6,
   },
   topSection: {
     height: 120, // Fixed height for the top section
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingTop: 20,
+    paddingTop: 60,
+    marginBottom: 30,
   },
   flatList: {
     flex: 1, // FlatList will take the remaining space
@@ -72,15 +71,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', // Align content to the top
     alignItems: 'center',
     paddingVertical: 20, // Space between the goals and the edges
-  },
-  textWrapper: {
-    backgroundColor: '#d3d3d3', // Light gray background 
-    padding: 10,
-    borderRadius: 10, // Rounded corners 
-    marginVertical: 10, // Spacing between goals
-  },
-  goalText: {
-    fontSize: 150, // Adjusted font size for readability
-    color: 'blue', // Text color set to blue
   },
 });
