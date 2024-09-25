@@ -13,7 +13,7 @@ export default function App() {
   // Callback function to add a new goal
   const handleInputData = (text) => {
     const newGoal = { text: text, id: Math.random() }; // Create new goal object with random id
-    setGoals((currentGoals) => {return [...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -41,6 +41,11 @@ export default function App() {
       ],
       { cancelable: true }
     );
+  };
+
+  // Custom component for rendering the separator (a line between items)
+  const renderSeparator = () => {
+    return <View style={styles.separator} />;
   };
 
   return (
@@ -82,6 +87,7 @@ export default function App() {
             </View>
           )
         } // Footer component for when there are goals
+        ItemSeparatorComponent={renderSeparator} // Add separator between items
       />
 
       {/* Pass the modal visibility and the callback function */}
@@ -134,5 +140,10 @@ const styles = StyleSheet.create({
   deleteAllContainer: {
     paddingVertical: 20,
     alignItems: 'center',
+  },
+  separator: {
+    height: 5, // A subtle thickness for the separator
+    backgroundColor: 'grey', // A lighter grey for a softer appearance
+    borderRadius: 6, // Rounded corners
   },
 });
