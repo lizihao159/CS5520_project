@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Button, FlatList, Text } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
@@ -12,8 +12,8 @@ export default function App() {
 
   // Callback function to add a new goal
   const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random()}; // Create new goal object with random id
-    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+    const newGoal = { text: text, id: Math.random() }; // Create new goal object with random id
+    setGoals((currentGoals) => {return [...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -44,9 +44,14 @@ export default function App() {
         renderItem={({ item }) => (
           <GoalItem goal={item} onDelete={handleDeleteGoal} /> // Pass the onDelete callback
         )}
-        keyExtractor={(item) => item.id} // Unique key for each item
+        keyExtractor={(item) => item.id.toString()} // Unique key for each item
         showsVerticalScrollIndicator={true} // Show vertical scroll indicator
         contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
+        ListEmptyComponent={() => (
+          <View style={styles.noGoalsContainer}>
+            <Text style={styles.noGoalsText}>No goals to show</Text>
+          </View>
+        )} // Component to render when list is empty
       />
 
       {/* Pass the modal visibility and the callback function */}
@@ -76,5 +81,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', // Align content to the top
     alignItems: 'center',
     paddingVertical: 20, // Space between the goals and the edges
+  },
+  noGoalsContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  noGoalsText: {
+    fontSize: 20,
+    color: '#800080', // Dark purple text
+    textAlign: 'center',
   },
 });
