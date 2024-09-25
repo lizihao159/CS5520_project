@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList, Text } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Button, FlatList, Text, Alert } from 'react-native';
 import Header from './components/Header';
 import { useState } from 'react';
 import Input from './components/Input';
@@ -13,7 +13,7 @@ export default function App() {
   // Callback function to add a new goal
   const handleInputData = (text) => {
     const newGoal = { text: text, id: Math.random() }; // Create new goal object with random id
-    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+    setGoals((currentGoals) => {return [...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -25,6 +25,22 @@ export default function App() {
   // Callback for canceling the input
   const handleCancel = () => {
     setModalVisible(false); // Hide the modal after user cancels
+  };
+
+  // Callback for deleting all goals
+  const handleDeleteAllGoals = () => {
+    Alert.alert(
+      'Delete All Goals',
+      'Are you sure you want to delete all goals?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          onPress: () => setGoals([]), // Clear the goals array
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -59,6 +75,13 @@ export default function App() {
             </View>
           )
         )} // Header component for when there are goals
+        ListFooterComponent={() =>
+          goals.length > 0 && (
+            <View style={styles.deleteAllContainer}>
+              <Button title="Delete all" onPress={handleDeleteAllGoals} color="#800080" />
+            </View>
+          )
+        } // Footer component for when there are goals
       />
 
       {/* Pass the modal visibility and the callback function */}
@@ -107,5 +130,9 @@ const styles = StyleSheet.create({
   goalsHeaderText: {
     fontSize: 22,
     color: '#800080', // Dark purple text
+  },
+  deleteAllContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });
