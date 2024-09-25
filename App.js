@@ -13,7 +13,7 @@ export default function App() {
   // Callback function to add a new goal
   const handleInputData = (text) => {
     const newGoal = { text: text, id: Math.random() }; // Create new goal object with random id
-    setGoals((currentGoals) => {return [...currentGoals, newGoal]}); // Add new goal to the list using spread operator
+    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
     setModalVisible(false); // Hide modal
   };
 
@@ -52,6 +52,13 @@ export default function App() {
             <Text style={styles.noGoalsText}>No goals to show</Text>
           </View>
         )} // Component to render when list is empty
+        ListHeaderComponent={() => (
+          goals.length > 0 && (
+            <View style={styles.goalsHeader}>
+              <Text style={styles.goalsHeaderText}>My Goal List</Text>
+            </View>
+          )
+        )} // Header component for when there are goals
       />
 
       {/* Pass the modal visibility and the callback function */}
@@ -85,10 +92,20 @@ const styles = StyleSheet.create({
   noGoalsContainer: {
     alignItems: 'center',
     padding: 20,
+    width: '100%', // Make sure the container stretches across the whole width
   },
   noGoalsText: {
     fontSize: 20,
     color: '#800080', // Dark purple text
     textAlign: 'center',
+  },
+  goalsHeader: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: '#d8bfd8',
+  },
+  goalsHeaderText: {
+    fontSize: 22,
+    color: '#800080', // Dark purple text
   },
 });
