@@ -1,80 +1,52 @@
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList } from 'react-native';
-import Header from './components/Header';
-import { useState } from 'react';
-import Input from './components/Input';
-import GoalItem from './components/GoalItem';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Button, Alert } from 'react-native';
+import Home from './components/Home';
+import GoalDetails from './components/GoalDetails';
+
+// Create the stack navigator
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const appName = 'Welcome to My awesome app!';
-  const [goals, setGoals] = useState([]); // State to store list of goals
-  const [modalVisible, setModalVisible] = useState(false);
-
-  // Callback function to add a new goal
-  const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random()}; // Create new goal object with random id
-    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
-    setModalVisible(false); // Hide modal
-  };
-
-  // Callback function to delete a goal
-  const handleDeleteGoal = (goalId) => {
-    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId)); // Filter out the goal with the given id
-  };
-
-  // Callback for canceling the input
-  const handleCancel = () => {
-    setModalVisible(false); // Hide the modal after user cancels
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
-
-      {/* Top section */}
-      <View style={styles.topSection}>
-        <Header name={appName}></Header>
-        <Button title="Add a goal" onPress={() => setModalVisible(true)} />
-      </View>
-
-      {/* Use FlatList to display goals */}
-      <FlatList
-        style={styles.flatList}
-        data={goals} // Data source for FlatList
-        renderItem={({ item }) => (
-          <GoalItem goal={item} onDelete={handleDeleteGoal} /> // Pass the onDelete callback
-        )}
-        keyExtractor={(item) => item.id} // Unique key for each item
-        showsVerticalScrollIndicator={true} // Show vertical scroll indicator
-        contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
-      />
-
-      {/* Pass the modal visibility and the callback function */}
-      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: { backgroundColor: 'purple' }, // Default header background color
+          headerTintColor: 'white', // Default header font color
+          headerTitleStyle: { fontWeight: 'bold', fontSize: 22 }, // Default header title style
+        }}
+      >
+        {/* Home Screen with customized header options */}
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{
+            title: 'Home',
+          }}
+        />
+        
+        {/* GoalDetails screen with dynamic header title and header button */}
+        <Stack.Screen
+          name="Details"
+          component={GoalDetails}
+          options={({ route, navigation }) => ({
+            // Dynamically set the header title based on goal text
+            title: route.params.goal.text, 
+            
+            // Add a button to the right side of the header
+            headerRight: () => (
+              <Button
+                title="Warning"
+                color="yellow"
+                onPress={() => Alert.alert('Warning', 'warning message')}
+              />
+            ),
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  topSection: {
-    height: 120, // Fixed height for the top section
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 20,
-  },
-  flatList: {
-    flex: 1, // FlatList will take the remaining space
-  },
-  scrollContentContainer: {
-    flexGrow: 1, // Allow content to grow
-    backgroundColor: '#d8bfd8',
-    justifyContent: 'flex-start', // Align content to the top
-    alignItems: 'center',
-    paddingVertical: 20, // Space between the goals and the edges
-  },
-});
