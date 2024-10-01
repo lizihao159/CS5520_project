@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
-const GoalItem = ({ goal, onDelete }) => {
+// Accept a new prop onNavigate to handle navigation
+const GoalItem = ({ goal, onDelete, onNavigate }) => {
   return (
     <View style={styles.textWrapper}>
       <Text style={styles.goalText}>{goal.text}</Text>
-      {/* delete button*/}
+      {/* Delete button */}
       <Button title="X" color="black" onPress={() => onDelete(goal.id)} />
+      {/* Navigate button */}
+      <Button title="i" color="#007BFF" onPress={onNavigate} />
     </View>
   );
 };

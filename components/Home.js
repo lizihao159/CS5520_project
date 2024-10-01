@@ -1,17 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList, Text, Alert, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Button, FlatList, Text, Alert } from 'react-native';
 import Header from './Header';
 import { useState } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { useNavigation } from '@react-navigation/native';
 
-export default function Home() {
+export default function Home({ navigation }) { // Receive the navigation prop
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-
-  const navigation = useNavigation(); // Get navigation object
 
   const handleInputData = (text) => {
     const newGoal = { text: text, id: Math.random() };
@@ -46,7 +43,7 @@ export default function Home() {
     return <View style={styles.separator} />;
   };
 
-  // Navigate to details screen on goal item click
+  // Function to navigate to goal details
   const navigateToDetails = (goal) => {
     navigation.navigate('Details', { goal });
   };
@@ -65,10 +62,11 @@ export default function Home() {
         style={styles.flatList}
         data={goals}
         renderItem={({ item }) => (
-          // Make goal item clickable to navigate to details
-          <TouchableOpacity onPress={() => navigateToDetails(item)}>
-            <GoalItem goal={item} onDelete={handleDeleteGoal} />
-          </TouchableOpacity>
+          <GoalItem 
+            goal={item} 
+            onDelete={handleDeleteGoal} 
+            onNavigate={() => navigateToDetails(item)} // Pass navigation callback
+          />
         )}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={true}
@@ -99,7 +97,6 @@ export default function Home() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
