@@ -10,22 +10,27 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      {/* Define stack navigator */}
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
-          headerStyle: { backgroundColor: '#fff' },
-          headerTintColor: '#800080',
-          headerTitleStyle: { fontWeight: 'bold' },
+          headerStyle: { backgroundColor: '#fff' }, // Default header background color
+          headerTintColor: '#800080', // Default header font color
+          headerTitleStyle: { fontWeight: 'bold' }, // Default header title style
         }}
       >
-        {/* Register Home screen */}
+        {/* Home Screen with customized header options */}
         <Stack.Screen
           name="Home"
           component={Home}
-          options={{ title: 'Home' }}
+          options={{
+            title: 'Home', // Custom title for Home
+            headerStyle: { backgroundColor: 'white' },
+            headerTintColor: 'purple', 
+            headerTitleStyle: { fontSize: 22, fontWeight: 'bold' },
+          }}
         />
-        {/* Register GoalDetails screen */}
+        
+        {/* GoalDetails screen */}
         <Stack.Screen
           name="Details"
           component={GoalDetails}
