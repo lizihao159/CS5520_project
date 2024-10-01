@@ -1,149 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList, Text, Alert } from 'react-native';
-import Header from './components/Header';
-import { useState } from 'react';
-import Input from './components/Input';
-import GoalItem from './components/GoalItem';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Home from './components/Home';
+
+// Create the stack navigator
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const appName = 'Welcome to My awesome app!';
-  const [goals, setGoals] = useState([]); // State to store list of goals
-  const [modalVisible, setModalVisible] = useState(false);
-
-  // Callback function to add a new goal
-  const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random() }; // Create new goal object with random id
-    setGoals((currentGoals) => {return[...currentGoals, newGoal]}); // Add new goal to the list using spread operator
-    setModalVisible(false); // Hide modal
-  };
-
-  // Callback function to delete a goal
-  const handleDeleteGoal = (goalId) => {
-    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId)); // Filter out the goal with the given id
-  };
-
-  // Callback for canceling the input
-  const handleCancel = () => {
-    setModalVisible(false); // Hide the modal after user cancels
-  };
-
-  // Callback for deleting all goals
-  const handleDeleteAllGoals = () => {
-    Alert.alert(
-      'Delete All Goals',
-      'Are you sure you want to delete all goals?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes',
-          onPress: () => setGoals([]), // Clear the goals array
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  // Custom component for rendering the separator (a line between items)
-  const renderSeparator = () => {
-    return <View style={styles.separator} />;
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
-
-      {/* Top section */}
-      <View style={styles.topSection}>
-        <Header name={appName}></Header>
-        <Button title="Add a goal" onPress={() => setModalVisible(true)} />
-      </View>
-
-      {/* Use FlatList to display goals */}
-      <FlatList
-        style={styles.flatList}
-        data={goals} // Data source for FlatList
-        renderItem={({ item }) => (
-          <GoalItem goal={item} onDelete={handleDeleteGoal} /> // Pass the onDelete callback
-        )}
-        keyExtractor={(item) => item.id.toString()} // Unique key for each item
-        showsVerticalScrollIndicator={true} // Show vertical scroll indicator
-        contentContainerStyle={styles.scrollContentContainer} // Style for the content inside the FlatList
-        ListEmptyComponent={() => (
-          <View style={styles.noGoalsContainer}>
-            <Text style={styles.noGoalsText}>No goals to show</Text>
-          </View>
-        )} // Component to render when list is empty
-        ListHeaderComponent={() => (
-          goals.length > 0 && (
-            <View style={styles.goalsHeader}>
-              <Text style={styles.goalsHeaderText}>My Goal List</Text>
-            </View>
-          )
-        )} // Header component for when there are goals
-        ListFooterComponent={() =>
-          goals.length > 0 && (
-            <View style={styles.deleteAllContainer}>
-              <Button title="Delete all" onPress={handleDeleteAllGoals} color="#800080" />
-            </View>
-          )
-        } // Footer component for when there are goals
-        ItemSeparatorComponent={renderSeparator} // Add separator between items
-      />
-
-      {/* Pass the modal visibility and the callback function */}
-      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
-    </SafeAreaView>
+    <NavigationContainer>
+      {/* Define stack navigator */}
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: { backgroundColor: '#fff' }, // Customize header background color
+          headerTintColor: '#800080', // Customize header text color
+          headerTitleStyle: { fontWeight: 'bold' }, // Additional header text styling
+        }}
+      >
+        {/* Register the Home screen */}
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{ title: 'My Awesome App' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  topSection: {
-    height: 120, // Fixed height for the top section
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 20,
-  },
-  flatList: {
-    flex: 1, // FlatList will take the remaining space
-  },
-  scrollContentContainer: {
-    flexGrow: 1, // Allow content to grow
-    backgroundColor: '#d8bfd8',
-    justifyContent: 'flex-start', // Align content to the top
-    alignItems: 'center',
-    paddingVertical: 20, // Space between the goals and the edges
-  },
-  noGoalsContainer: {
-    alignItems: 'center',
-    padding: 20,
-    width: '100%', // Make sure the container stretches across the whole width
-  },
-  noGoalsText: {
-    fontSize: 20,
-    color: '#800080', // Dark purple text
-    textAlign: 'center',
-  },
-  goalsHeader: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    backgroundColor: '#d8bfd8',
-  },
-  goalsHeaderText: {
-    fontSize: 22,
-    color: '#800080', // Dark purple text
-  },
-  deleteAllContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  separator: {
-    height: 5, // A subtle thickness for the separator
-    backgroundColor: 'grey', // A lighter grey for a softer appearance
-    borderRadius: 6, // Rounded corners
-  },
-});
