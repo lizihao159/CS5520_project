@@ -3,14 +3,15 @@ import { View, Text, StyleSheet } from 'react-native';
 
 // This component will display details of the goal
 export default function GoalDetails({ route }) {
-  // Retrieve the goal details passed through navigation
+  // Retrieve the goal details from route params
   const { goal } = route.params;
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Goal Details</Text>
+      {/* Display goal details */}
       <Text style={styles.text}>ID: {goal.id}</Text>
-      <Text style={styles.text}>Text: {goal.text}</Text>
+      <Text style={styles.text}>Goal: {goal.text}</Text>
     </View>
   );
 }

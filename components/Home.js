@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
 
-export default function Home({ navigation }) { // Receive the navigation prop
+export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -45,6 +45,7 @@ export default function Home({ navigation }) { // Receive the navigation prop
 
   // Function to navigate to goal details
   const navigateToDetails = (goal) => {
+    // Pass the goal object as a param
     navigation.navigate('Details', { goal });
   };
 
@@ -65,7 +66,7 @@ export default function Home({ navigation }) { // Receive the navigation prop
           <GoalItem 
             goal={item} 
             onDelete={handleDeleteGoal} 
-            onNavigate={() => navigateToDetails(item)} // Pass navigation callback
+            onNavigate={navigateToDetails} // Pass goal as argument
           />
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -97,6 +98,7 @@ export default function Home({ navigation }) { // Receive the navigation prop
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

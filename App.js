@@ -24,8 +24,8 @@ export default function App() {
           component={Home}
           options={{
             title: 'Home', // Custom title for Home
-            headerStyle: { backgroundColor: 'white' },
-            headerTintColor: 'purple', 
+            headerStyle: { backgroundColor: 'purple' },
+            headerTintColor: 'white', 
             headerTitleStyle: { fontSize: 22, fontWeight: 'bold' },
           }}
         />
