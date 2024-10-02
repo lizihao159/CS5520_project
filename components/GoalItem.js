@@ -1,14 +1,22 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
-const GoalItem = ({ goal, onDelete, onNavigate }) => {
+const GoalItem = ({ goal, onDelete }) => {
+  const navigation = useNavigation(); // Get the navigation object
+
+  // Function to handle navigation to GoalDetails screen
+  const handlePress = () => {
+    navigation.navigate('Details', { goal }); // Navigate to the GoalDetails screen
+  };
+
   return (
     <View style={styles.textWrapper}>
       <Text style={styles.goalText}>{goal.text}</Text>
       {/* Delete button */}
       <Button title="X" color="black" onPress={() => onDelete(goal.id)} />
       {/* Navigate button */}
-      <Button title="i" color="#007BFF" onPress={() => onNavigate(goal)} />
+      <Button title="i" color="#007BFF" onPress={handlePress} />
     </View>
   );
 };
