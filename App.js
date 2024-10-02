@@ -13,13 +13,14 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Home"
+        // Unified header styling for all screens
         screenOptions={{
-          headerStyle: { backgroundColor: 'purple' }, // Default header background color
-          headerTintColor: 'white', // Default header font color
-          headerTitleStyle: { fontWeight: 'bold', fontSize: 22 }, // Default header title style
+          headerStyle: { backgroundColor: 'purple' }, // Consistent header background color
+          headerTintColor: 'white', // Consistent header font color
+          headerTitleStyle: { fontWeight: 'bold', fontSize: 22 }, // Consistent header title style
         }}
       >
-        {/* Home Screen with customized header options */}
+        {/* Home Screen with default header options */}
         <Stack.Screen
           name="Home"
           component={Home}
@@ -28,20 +29,28 @@ export default function App() {
           }}
         />
         
-        {/* GoalDetails screen with dynamic header title and header button */}
+        {/* GoalDetails screen with dynamic header title */}
         <Stack.Screen
           name="Details"
           component={GoalDetails}
           options={({ route, navigation }) => ({
-            // Dynamically set the header title based on goal text
             title: route.params.goal.text, 
             
             // Add a button to the right side of the header
             headerRight: () => (
               <Button
                 title="Warning"
-                color="yellow"
-                onPress={() => Alert.alert('Warning', 'warning message')}
+                color="#FF6347"
+                onPress={() => Alert.alert('Warning', 'This is a warning message')}
+              />
+            ),
+
+            // Optional: Add a button to the left side of the header
+            headerLeft: () => (
+              <Button
+                title="Back"
+                color="#FFFFFF"
+                onPress={() => navigation.goBack()}
               />
             ),
           })}
