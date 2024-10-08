@@ -1,9 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, Button, FlatList, Text, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert } from 'react-native';
 import Header from './Header';
 import { useState } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
+import PressableButton from './PressableButton'; // Import the PressableButton component
 
 export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
@@ -56,7 +57,13 @@ export default function Home({ navigation }) {
       {/* Top section */}
       <View style={styles.topSection}>
         <Header name={appName}></Header>
-        <Button title="Add a Goal" onPress={() => setModalVisible(true)} color="#007BFF" />
+
+        {/* Add a Goal button with custom styles */}
+        <PressableButton 
+          title="Add a Goal" 
+          onPress={() => setModalVisible(true)} 
+          customStyles={styles.addButton} // Custom styles for Add a Goal
+        />
       </View>
 
       <FlatList
@@ -87,7 +94,12 @@ export default function Home({ navigation }) {
         ListFooterComponent={() =>
           goals.length > 0 && (
             <View style={styles.deleteAllContainer}>
-              <Button title="Delete all" onPress={handleDeleteAllGoals} color="#800080" />
+              {/* Delete All button with custom styles */}
+              <PressableButton 
+                title="Delete all" 
+                onPress={handleDeleteAllGoals} 
+                customStyles={styles.deleteAllButton} // Custom styles for Delete All
+              />
             </View>
           )
         }
@@ -148,5 +160,21 @@ const styles = StyleSheet.create({
     height: 5,
     backgroundColor: 'grey',
     borderRadius: 6,
+  },
+  addButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteAllButton: {
+    backgroundColor: '#800080',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

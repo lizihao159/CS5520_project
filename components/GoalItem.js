@@ -1,37 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import PressableButton from './PressableButton'; // Import the new PressableButton
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import PressableButton from './PressableButton'; // Import the reusable PressableButton component
 
 const GoalItem = ({ goal, onDelete }) => {
-  const [isPressed, setIsPressed] = useState(false);
-  const navigation = useNavigation();
-
-  const handlePress = () => {
-    navigation.navigate('Details', { goal });
-  };
-
   return (
-    <Pressable
-      onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}
-      onPress={handlePress}
-      android_ripple={{ borderless: false, foreground: false }}
-    >
-      <View style={isPressed ? styles.ripplestyle : styles.textWrapper}>
-        <Text style={styles.goalText}>{goal.text}</Text>
-
-        {/* Use the new PressableButton component for delete */}
-        <PressableButton title="X" onPress={() => onDelete(goal.id)} />
-      </View>
-    </Pressable>
+    <View style={styles.goalItem}>
+      <Text style={styles.goalText}>{goal.text}</Text>
+      {/* Use PressableButton for the delete button with a trash icon */}
+      <PressableButton 
+        iconName="trash"  // Use Ionicons' trash icon
+        onPress={() => onDelete(goal.id)}
+        customStyles={styles.deleteButton}  // Custom style for delete button
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  textWrapper: {
+  goalItem: {
     backgroundColor: '#d3d3d3',
-    padding: 15,
+    padding: 10,
     borderRadius: 6,
     marginVertical: 10,
     flexDirection: 'row',
@@ -40,16 +28,15 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 20,
-    color: 'blue',
+    color: 'purple',
   },
-  ripplestyle: {
-    backgroundColor: 'blue',
-    padding: 15,
+  deleteButton: {
+    backgroundColor: 'black',
+    padding: 10,
     borderRadius: 6,
-    marginVertical: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
+    width: 50, // Size suitable for icon
   },
 });
 
