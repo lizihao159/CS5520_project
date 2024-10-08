@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Button, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import Home from './components/Home';
 import GoalDetails from './components/GoalDetails';
+import PressableButton from './components/PressableButton'; // Import the reusable PressableButton component
 
 // Create the stack navigator
 const Stack = createNativeStackNavigator();
@@ -36,21 +37,15 @@ export default function App() {
           options={({ route, navigation }) => ({
             title: route.params.goal.text, 
             
-            // Add a button to the right side of the header
+            // Add a PressableButton with an icon to the right side of the header
             headerRight: () => (
-              <Button
-                title="Warning"
-                color="#FF6347"
+              <PressableButton
+                iconName="warning" // Only pass iconName to show the icon
                 onPress={() => Alert.alert('Warning', 'This is a warning message')}
-              />
-            ),
-
-            // Optional: Add a button to the left side of the header
-            headerLeft: () => (
-              <Button
-                title="Back"
-                color="#FFFFFF"
-                onPress={() => navigation.goBack()}
+                customStyles={{
+                  backgroundColor: 'transparent', // Transparent background for the header button
+                  padding: 10,
+                }}
               />
             ),
           })}

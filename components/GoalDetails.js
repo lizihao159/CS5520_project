@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import PressableButton from './PressableButton'; // Import the reusable PressableButton component
 
 // This component will display details of the goal
 export default function GoalDetails({ route, navigation }) {
@@ -17,17 +18,18 @@ export default function GoalDetails({ route, navigation }) {
     navigation.setOptions({ title: 'Warning!' });
   };
 
-  // Function to handle navigating to MoreDetails screen
-  const handleMoreDetails = () => {
-    // Push another instance of the GoalDetails screen
-    navigation.push('Details', { goal, title: 'More Details' });
-  };
-
   // Use useLayoutEffect to add the header button when the component mounts
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button title="Warning" color="#FF6347" onPress={handleWarningPress} />
+        <PressableButton
+          iconName="warning" // Use warning icon
+          onPress={handleWarningPress}
+          customStyles={{
+            backgroundColor: 'transparent', // Transparent background for the header button
+            padding: 10,
+          }}
+        />
       ),
     });
   }, [navigation]);
@@ -38,7 +40,7 @@ export default function GoalDetails({ route, navigation }) {
       <Text style={[styles.text, { color: textColor }]}>ID: {goal.id}</Text>
 
       {/* More Details button */}
-      <Button title="More details" onPress={handleMoreDetails} color="#007BFF" />
+      <Button title="More details" onPress={() => navigation.push('Details', { goal })} color="#007BFF" />
     </View>
   );
 }
