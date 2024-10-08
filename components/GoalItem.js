@@ -11,16 +11,13 @@ const GoalItem = ({ goal, onDelete }) => {
   };
 
   return (
-    <View style={styles.textWrapper}>
-      <Text style={styles.goalText}>{goal.text}</Text>
-      {/* Delete button */}
-      <Button title="X" color="black" onPress={() => onDelete(goal.id)} />
-      
-      {/* Replace the i button with a Pressable */}
-      <Pressable onPress={handlePress} style={styles.pressable}>
-        <Text style={styles.pressableText}>i</Text>
-      </Pressable>
-    </View>
+    <Pressable onPress={handlePress}>
+      <View style={styles.textWrapper}>
+        <Text style={styles.goalText}>{goal.text}</Text>
+        {/* Delete button */}
+        <Button title="X" color="black" onPress={() => onDelete(goal.id)} />
+      </View>
+    </Pressable>
   );
 };
 
@@ -37,15 +34,6 @@ const styles = StyleSheet.create({
   goalText: {
     fontSize: 20,
     color: 'blue',
-  },
-  pressable: {
-    backgroundColor: '#007BFF',
-    padding: 5,
-    borderRadius: 3,
-  },
-  pressableText: {
-    color: 'white',
-    fontSize: 16,
   },
 });
 
