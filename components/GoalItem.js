@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
 const GoalItem = ({ goal, onDelete }) => {
@@ -15,8 +15,11 @@ const GoalItem = ({ goal, onDelete }) => {
       <Text style={styles.goalText}>{goal.text}</Text>
       {/* Delete button */}
       <Button title="X" color="black" onPress={() => onDelete(goal.id)} />
-      {/* Navigate button */}
-      <Button title="i" color="#007BFF" onPress={handlePress} />
+      
+      {/* Replace the i button with a Pressable */}
+      <Pressable onPress={handlePress} style={styles.pressable}>
+        <Text style={styles.pressableText}>i</Text>
+      </Pressable>
     </View>
   );
 };
@@ -34,6 +37,15 @@ const styles = StyleSheet.create({
   goalText: {
     fontSize: 20,
     color: 'blue',
+  },
+  pressable: {
+    backgroundColor: '#007BFF',
+    padding: 5,
+    borderRadius: 3,
+  },
+  pressableText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
