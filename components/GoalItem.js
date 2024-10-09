@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import PressableButton from './PressableButton'; // Import the reusable PressableButton component
 
-const GoalItem = ({ goal, onDelete, onNavigate }) => {
+const GoalItem = ({ goal, onDelete, onNavigate, onHighlight, onUnhighlight }) => {
   // Function to handle long press and show alert
   const handleLongPress = () => {
     Alert.alert(
@@ -24,9 +24,13 @@ const GoalItem = ({ goal, onDelete, onNavigate }) => {
 
   return (
     <Pressable
-      onPress={() => onNavigate(goal)} // Navigate to details on press
+      onPress={() => {
+        onNavigate(goal); // Navigate to details on press
+      }}
       onLongPress={handleLongPress} // Handle long press to delete
       android_ripple={{ color: '#ccc' }} // Android ripple effect
+      onPressIn={onHighlight} // Highlight separator when pressed
+      onPressOut={onUnhighlight} // Unhighlight separator when released
       style={({ pressed }) => [
         styles.goalItem,
         pressed ? styles.pressedItem : null, // Apply pressed style for iOS
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 50, // Size suitable for icon
+    width: 40, // Size suitable for icon
   },
   pressedItem: {
     opacity: 0.7, // Apply opacity change for pressed effect

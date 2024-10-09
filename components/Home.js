@@ -40,9 +40,26 @@ export default function Home({ navigation }) {
     );
   };
 
-  const renderSeparator = () => {
-    return <View style={styles.separator} />;
-  };
+  // Modify the renderSeparator to handle highlighted state
+  const renderSeparator = ({ highlighted }) => (
+    <View
+      style={[
+        styles.separator,
+        highlighted ? styles.highlightedSeparator : null, // Change separator color when highlighted
+      ]}
+    />
+  );
+
+  // Modify the renderItem function to use separators and change their appearance when pressed
+  const renderItem = ({ item, separators }) => (
+    <GoalItem
+      goal={item}
+      onDelete={handleDeleteGoal}
+      onNavigate={() => navigateToDetails(item)} // Pass goal as argument
+      onHighlight={() => separators.highlight()} // Highlight separator when item is pressed
+      onUnhighlight={() => separators.unhighlight()} // Unhighlight separator when released
+    />
+  );
 
   // Function to navigate to goal details
   const navigateToDetails = (goal) => {
@@ -69,13 +86,7 @@ export default function Home({ navigation }) {
       <FlatList
         style={styles.flatList}
         data={goals}
-        renderItem={({ item }) => (
-          <GoalItem 
-            goal={item} 
-            onDelete={handleDeleteGoal} 
-            onNavigate={navigateToDetails} // Pass goal as argument
-          />
-        )}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={true}
         contentContainerStyle={styles.scrollContentContainer}
@@ -103,7 +114,7 @@ export default function Home({ navigation }) {
             </View>
           )
         }
-        ItemSeparatorComponent={renderSeparator}
+        ItemSeparatorComponent={renderSeparator} // Update the ItemSeparatorComponent to use highlighted state
       />
 
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
@@ -157,9 +168,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   separator: {
-    height: 5,
-    backgroundColor: 'grey',
+    height: 2,
     borderRadius: 6,
+    backgroundColor: 'grey', // Default color of the separator line
+  },
+  highlightedSeparator: {
+    backgroundColor: 'transparent', // Transparent background
+    borderBottomWidth: 2, // Change the border width
+    borderBottomColor: '#007BFF', // Change the border color (separator color)
   },
   addButton: {
     backgroundColor: '#007BFF',
