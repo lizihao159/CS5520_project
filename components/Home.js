@@ -1,3 +1,4 @@
+// Home.js
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert } from 'react-native';
 import Header from './Header';
@@ -5,15 +6,22 @@ import { useState } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
 import PressableButton from './PressableButton'; // Import the PressableButton component
+import { writeToDB } from '../Firebase/firestoreHelper'; // Import the Firestore write function
 
 export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random() };
-    setGoals((currentGoals) => [...currentGoals, newGoal]);
+  const handleInputData = async (text) => {
+    const newGoal = { text: text };
+
+    // Save to Firestore
+    await writeToDB(newGoal);
+
+    // Update local state (if still needed)
+    setGoals((currentGoals) => [...currentGoals, { text, id: Math.random() }]);
+
     setModalVisible(false);
   };
 
