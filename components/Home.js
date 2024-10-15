@@ -4,7 +4,7 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
 import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import writeToDB and deleteFromDB functions
 import PressableButton from './PressableButton'; // Import the PressableButton component
@@ -50,11 +50,8 @@ export default function Home({ navigation }) {
     }
   };
 
-  const handleCancel = () => {
-    setModalVisible(false);
-  };
-
-  const handleDeleteAllGoals = () => {
+  // Delete all goals from Firestore
+  const handleDeleteAllGoals = async () => {
     Alert.alert(
       'Delete All Goals',
       'Are you sure you want to delete all goals?',
@@ -62,11 +59,25 @@ export default function Home({ navigation }) {
         { text: 'No', style: 'cancel' },
         {
           text: 'Yes',
-          onPress: () => setGoals([]),
+          onPress: async () => {
+            try {
+              const querySnapshot = await getDocs(collection(database, 'goals'));
+              // Loop through all documents and delete them
+              querySnapshot.forEach(async (doc) => {
+                await deleteFromDB(doc.id); // Delete each document
+              });
+            } catch (error) {
+              console.error('Error deleting all goals:', error);
+            }
+          },
         },
       ],
       { cancelable: true }
     );
+  };
+
+  const handleCancel = () => {
+    setModalVisible(false);
   };
 
   // Modify the renderSeparator to handle highlighted state
