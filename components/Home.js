@@ -6,7 +6,7 @@ import Input from './Input';
 import GoalItem from './GoalItem';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
-import { writeToDB } from '../Firebase/firestoreHelper'; // Import the writeToDB function
+import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import writeToDB and deleteFromDB functions
 import PressableButton from './PressableButton'; // Import the PressableButton component
 
 export default function Home({ navigation }) {
@@ -20,7 +20,7 @@ export default function Home({ navigation }) {
       const updatedGoals = [];
       querySnapshot.forEach((doc) => {
         // Use spread syntax to add the Firestore document ID to each goal object
-        const goal = { id: doc.id, ...doc.data() }; 
+        const goal = { id: doc.id, ...doc.data() };
         updatedGoals.push(goal);
       });
       setGoals(updatedGoals); // Update the state with the fetched documents, including the Firestore ID
@@ -40,8 +40,14 @@ export default function Home({ navigation }) {
     }
   };
 
-  const handleDeleteGoal = (goalId) => {
-    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId));
+  // Delete goal from Firestore and update the state
+  const handleDeleteGoal = async (goalId) => {
+    try {
+      await deleteFromDB(goalId); // Call deleteFromDB to delete the document from Firestore
+      // No need to update the state manually as onSnapshot will handle this
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -77,7 +83,7 @@ export default function Home({ navigation }) {
   const renderItem = ({ item, separators }) => (
     <GoalItem
       goal={item}
-      onDelete={handleDeleteGoal}
+      onDelete={() => handleDeleteGoal(item.id)} // Pass the goal's ID to handle deletion
       onNavigate={() => navigateToDetails(item)} // Pass goal as argument
       onHighlight={() => separators.highlight()} // Highlight separator when item is pressed
       onUnhighlight={() => separators.unhighlight()} // Unhighlight separator when released
