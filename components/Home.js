@@ -1,28 +1,43 @@
-// Home.js
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert } from 'react-native';
 import Header from './Header';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
+import { writeToDB } from '../Firebase/firestoreHelper'; // Import the writeToDB function
 import PressableButton from './PressableButton'; // Import the PressableButton component
-import { writeToDB } from '../Firebase/firestoreHelper'; // Import the Firestore write function
 
 export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // Listen for real-time updates from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(database, 'goals'), (querySnapshot) => {
+      const updatedGoals = [];
+      querySnapshot.forEach((doc) => {
+        // Use spread syntax to add the Firestore document ID to each goal object
+        const goal = { id: doc.id, ...doc.data() }; 
+        updatedGoals.push(goal);
+      });
+      setGoals(updatedGoals); // Update the state with the fetched documents, including the Firestore ID
+    });
+
+    return () => unsubscribe(); // Cleanup the listener on component unmount
+  }, []);
+
+  // Handle input data by adding a new goal to Firestore
   const handleInputData = async (text) => {
-    const newGoal = { text: text };
-
-    // Save to Firestore
-    await writeToDB(newGoal);
-
-    // Update local state (if still needed)
-    setGoals((currentGoals) => [...currentGoals, { text, id: Math.random() }]);
-
-    setModalVisible(false);
+    const newGoal = { text }; // Only text is needed as Firestore will handle the ID
+    try {
+      await writeToDB(newGoal); // Add the new goal to Firestore
+      setModalVisible(false); // Close the modal
+    } catch (error) {
+      console.error('Error adding goal:', error);
+    }
   };
 
   const handleDeleteGoal = (goalId) => {
