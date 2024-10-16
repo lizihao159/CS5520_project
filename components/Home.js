@@ -1,9 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert } from 'react-native';
 import Header from './Header';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
+import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import writeToDB and deleteFromDB functions
 import PressableButton from './PressableButton'; // Import the PressableButton component
 
 export default function Home({ navigation }) {
@@ -11,21 +14,44 @@ export default function Home({ navigation }) {
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleInputData = (text) => {
-    const newGoal = { text: text, id: Math.random() };
-    setGoals((currentGoals) => [...currentGoals, newGoal]);
-    setModalVisible(false);
+  // Listen for real-time updates from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(database, 'goals'), (querySnapshot) => {
+      const updatedGoals = [];
+      querySnapshot.forEach((doc) => {
+        // Use spread syntax to add the Firestore document ID to each goal object
+        const goal = { id: doc.id, ...doc.data() };
+        updatedGoals.push(goal);
+      });
+      setGoals(updatedGoals); // Update the state with the fetched documents, including the Firestore ID
+    });
+
+    return () => unsubscribe(); // Cleanup the listener on component unmount
+  }, []);
+
+  // Handle input data by adding a new goal to Firestore
+  const handleInputData = async (text) => {
+    const newGoal = { text }; // Only text is needed as Firestore will handle the ID
+    try {
+      await writeToDB(newGoal); // Add the new goal to Firestore
+      setModalVisible(false); // Close the modal
+    } catch (error) {
+      console.error('Error adding goal:', error);
+    }
   };
 
-  const handleDeleteGoal = (goalId) => {
-    setGoals((currentGoals) => currentGoals.filter((goal) => goal.id !== goalId));
+  // Delete goal from Firestore and update the state
+  const handleDeleteGoal = async (goalId) => {
+    try {
+      await deleteFromDB(goalId); // Call deleteFromDB to delete the document from Firestore
+      // No need to update the state manually as onSnapshot will handle this
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+    }
   };
 
-  const handleCancel = () => {
-    setModalVisible(false);
-  };
-
-  const handleDeleteAllGoals = () => {
+  // Delete all goals from Firestore
+  const handleDeleteAllGoals = async () => {
     Alert.alert(
       'Delete All Goals',
       'Are you sure you want to delete all goals?',
@@ -33,16 +59,47 @@ export default function Home({ navigation }) {
         { text: 'No', style: 'cancel' },
         {
           text: 'Yes',
-          onPress: () => setGoals([]),
+          onPress: async () => {
+            try {
+              const querySnapshot = await getDocs(collection(database, 'goals'));
+              // Loop through all documents and delete them
+              querySnapshot.forEach(async (doc) => {
+                await deleteFromDB(doc.id); // Delete each document
+              });
+            } catch (error) {
+              console.error('Error deleting all goals:', error);
+            }
+          },
         },
       ],
       { cancelable: true }
     );
   };
 
-  const renderSeparator = () => {
-    return <View style={styles.separator} />;
+  const handleCancel = () => {
+    setModalVisible(false);
   };
+
+  // Modify the renderSeparator to handle highlighted state
+  const renderSeparator = ({ highlighted }) => (
+    <View
+      style={[
+        styles.separator,
+        highlighted ? styles.highlightedSeparator : null, // Change separator color when highlighted
+      ]}
+    />
+  );
+
+  // Modify the renderItem function to use separators and change their appearance when pressed
+  const renderItem = ({ item, separators }) => (
+    <GoalItem
+      goal={item}
+      onDelete={() => handleDeleteGoal(item.id)} // Pass the goal's ID to handle deletion
+      onNavigate={() => navigateToDetails(item)} // Pass goal as argument
+      onHighlight={() => separators.highlight()} // Highlight separator when item is pressed
+      onUnhighlight={() => separators.unhighlight()} // Unhighlight separator when released
+    />
+  );
 
   // Function to navigate to goal details
   const navigateToDetails = (goal) => {
@@ -69,13 +126,7 @@ export default function Home({ navigation }) {
       <FlatList
         style={styles.flatList}
         data={goals}
-        renderItem={({ item }) => (
-          <GoalItem 
-            goal={item} 
-            onDelete={handleDeleteGoal} 
-            onNavigate={navigateToDetails} // Pass goal as argument
-          />
-        )}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={true}
         contentContainerStyle={styles.scrollContentContainer}
@@ -103,7 +154,7 @@ export default function Home({ navigation }) {
             </View>
           )
         }
-        ItemSeparatorComponent={renderSeparator}
+        ItemSeparatorComponent={renderSeparator} // Update the ItemSeparatorComponent to use highlighted state
       />
 
       <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
@@ -157,9 +208,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   separator: {
-    height: 5,
-    backgroundColor: 'grey',
+    height: 2,
     borderRadius: 6,
+    backgroundColor: 'grey', // Default color of the separator line
+  },
+  highlightedSeparator: {
+    backgroundColor: 'transparent', // Transparent background
+    borderBottomWidth: 2, // Change the border width
+    borderBottomColor: '#007BFF', // Change the border color (separator color)
   },
   addButton: {
     backgroundColor: '#007BFF',

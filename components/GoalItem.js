@@ -1,25 +1,49 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import PressableButton from './PressableButton'; // Import the reusable PressableButton component
 
-const GoalItem = ({ goal, onDelete, onNavigate }) => {
+const GoalItem = ({ goal, onDelete, onNavigate, onHighlight, onUnhighlight }) => {
+  // Function to handle long press and show alert
+  const handleLongPress = () => {
+    Alert.alert(
+      "Delete Goal", // Alert title
+      "Are you sure you want to delete this goal?", // Alert message
+      [
+        {
+          text: "Cancel", // Cancel button
+          style: "cancel"
+        },
+        {
+          text: "Delete", // Delete button
+          onPress: () => onDelete(goal.id), // Call onDelete function if user confirms
+          style: "destructive" // Use a destructive style for the delete button
+        }
+      ]
+    );
+  };
+
   return (
     <Pressable
-      onPress={() => onNavigate(goal)}
+      onPress={() => {
+        onNavigate(goal); // Navigate to details on press
+      }}
+      onLongPress={handleLongPress} // Handle long press to delete
       android_ripple={{ color: '#ccc' }} // Android ripple effect
+      onPressIn={onHighlight} // Highlight separator when pressed
+      onPressOut={onUnhighlight} // Unhighlight separator when released
       style={({ pressed }) => [
         styles.goalItem,
-        pressed && Platform.OS === 'ios' ? styles.pressedItem : null, // Special effect for iOS
+        pressed ? styles.pressedItem : null, // Apply pressed style for iOS
       ]}
     >
       <View style={styles.innerContainer}>
         <Text style={styles.goalText}>{goal.text}</Text>
-        
+
         {/* Use PressableButton for the delete button with a trash icon */}
-        <PressableButton 
-          iconName="trash"  // Use Ionicons' trash icon
-          onPress={() => onDelete(goal.id)}
-          customStyles={styles.deleteButton}  // Custom style for delete button
+        <PressableButton
+          iconName="trash" // Use Ionicons' trash icon
+          onPress={() => onDelete(goal.id)} // Delete directly if the trash icon is pressed
+          customStyles={styles.deleteButton} // Custom style for delete button
         />
       </View>
     </Pressable>
@@ -34,7 +58,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     justifyContent: 'space-between',
     alignItems: 'center',
-    // Since we are using conditional pressed styles, we won't specify iOS pressed styles here
   },
   innerContainer: {
     flexDirection: 'row',
@@ -51,10 +74,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 50, // Size suitable for icon
+    width: 40, // Size suitable for icon
   },
   pressedItem: {
-    opacity: 0.7, // Special pressed effect for iOS
+    opacity: 0.7, // Apply opacity change for pressed effect
   },
 });
 
