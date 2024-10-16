@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import PressableButton from './PressableButton'; // Import the reusable PressableButton component
+import { setWarningFlag } from '../Firebase/firestoreHelper'; // Import the new helper function
 
 // This component will display details of the goal
 export default function GoalDetails({ route, navigation }) {
@@ -11,11 +12,19 @@ export default function GoalDetails({ route, navigation }) {
   const [textColor, setTextColor] = useState('black');
 
   // Function to handle the "Warning" button press
-  const handleWarningPress = () => {
+  const handleWarningPress = async () => {
     // Change the text color to red
     setTextColor('red');
     // Update the header title to "Warning!"
     navigation.setOptions({ title: 'Warning!' });
+
+    // Update the Firestore document to set warning: true
+    try {
+      await setWarningFlag(goal.id);
+      console.log(`Warning flag set for goal with id: ${goal.id}`);
+    } catch (error) {
+      console.error('Error setting warning flag:', error);
+    }
   };
 
   // Use useLayoutEffect to add the header button when the component mounts
