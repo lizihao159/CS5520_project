@@ -3,7 +3,7 @@
     "name": "CS5520_project",
     "slug": "CS5520_project",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
