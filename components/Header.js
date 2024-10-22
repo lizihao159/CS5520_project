@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions, Platform } from 'react-native';
 import React from 'react';
 
 export default function Header({ name, headerStyle, textStyle }) {
-    const { width, height } = useWindowDimensions(); // Hook to get current width and height
+    const { width, height } = useWindowDimensions(); // Hook to get current dimensions
 
-    // Define dynamic padding based on the height and width of the screen
+    // Define dynamic padding based on screen dimensions
     const paddingVerticalDynamic = height < 415 ? 0 : 10;
     const paddingHorizontalDynamic = width < 380 ? 10 : 20;
 
@@ -13,10 +13,10 @@ export default function Header({ name, headerStyle, textStyle }) {
             style={[
                 styles.headerContainer,
                 headerStyle,
-                { 
-                    paddingVertical: paddingVerticalDynamic, 
-                    paddingHorizontal: paddingHorizontalDynamic 
-                }
+                {
+                    paddingVertical: paddingVerticalDynamic,
+                    paddingHorizontal: paddingHorizontalDynamic,
+                },
             ]}
         >
             <Text style={[styles.headerText, textStyle]}>{name}</Text>
@@ -26,12 +26,12 @@ export default function Header({ name, headerStyle, textStyle }) {
 
 const styles = StyleSheet.create({
     headerContainer: {
-        borderWidth: 2,
-        borderColor: 'purple',
+        borderWidth: Platform.select({ ios: 2, android: 4 }), // Different border width for iOS and Android
+        borderColor: Platform.select({ ios: 'purple', android: 'slateblue' }), // Optional: Different colors per platform
         borderRadius: 10,
         marginBottom: 10,
         alignSelf: 'center',
-        backgroundColor: '#e1bee7', // Light purple background
+        backgroundColor: '#e1bee7', // Light purple background for visibility
     },
     headerText: {
         color: 'purple',
