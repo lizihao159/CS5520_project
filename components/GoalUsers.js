@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { addUsersToSubcollection, isUsersSubcollectionEmpty } from '../Firebase/firestoreHelper'; // Import helper functions
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Button, Alert } from 'react-native';
+import { addUsersToSubcollection, isUsersSubcollectionEmpty } from '../Firebase/firestoreHelper';
+import { collection, getDocs } from 'firebase/firestore';
+import { database } from '../Firebase/firebaseSetup'; 
 
 const GoalUsers = ({ goalId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasCheckedSubcollection, setHasCheckedSubcollection] = useState(false); // New state to track subcollection check
 
   useEffect(() => {
     const fetchAndStoreUsers = async () => {
@@ -14,20 +17,47 @@ const GoalUsers = ({ goalId }) => {
         if (isEmpty) {
           const response = await fetch('https://jsonplaceholder.typicode.com/users');
           const data = await response.json();
-          await addUsersToSubcollection(goalId, data); // Store users in Firestore
-          setUsers(data); // Update state with fetched users
+          await addUsersToSubcollection(goalId, data);
+          setUsers(data);
         } else {
           console.log('Users already exist in the subcollection.');
+          const usersCollectionRef = collection(database, 'goals', goalId, 'users');
+          const querySnapshot = await getDocs(usersCollectionRef);
+          const existingUsers = querySnapshot.docs.map((doc) => doc.data());
+          setUsers(existingUsers);
         }
       } catch (error) {
         console.error('Error fetching or storing users:', error);
       } finally {
         setLoading(false);
+        setHasCheckedSubcollection(true); // Mark the subcollection check as completed
       }
     };
 
-    fetchAndStoreUsers();
-  }, [goalId]);
+    if (!hasCheckedSubcollection) {
+      fetchAndStoreUsers(); // Ensure this only runs once
+    }
+  }, [goalId, hasCheckedSubcollection]); // Add dependency to control the fetch logic
+
+  const handlePostUser = async (user) => {
+    try {
+      const response = await fetch('https://jsonplaceholder.typicode.com/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        Alert.alert('Success', `User ${result.name} added successfully!`);
+      } else {
+        Alert.alert('Error', 'Failed to add user.');
+      }
+    } catch (error) {
+      console.error('Error posting user:', error);
+      Alert.alert('Error', 'An unexpected error occurred.');
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#007BFF" style={styles.loader} />;
@@ -42,7 +72,7 @@ const GoalUsers = ({ goalId }) => {
         renderItem={({ item }) => (
           <View style={styles.userItem}>
             <Text style={styles.userName}>{item.name}</Text>
-            <Text style={styles.userEmail}>{item.email}</Text>
+            <Button title="Post User" onPress={() => handlePostUser(item)} color="#007BFF" />
           </View>
         )}
       />
@@ -76,14 +106,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   userName: {
     fontSize: 18,
     fontWeight: '600',
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#555',
   },
 });
 
