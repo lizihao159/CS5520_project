@@ -1,43 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { addUsersToSubcollection, isUsersSubcollectionEmpty } from '../Firebase/firestoreHelper'; // Import helper functions
 
-const GoalUsers = () => {
-  // Initialize users state with an empty array
+const GoalUsers = ({ goalId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user data from API inside useEffect
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchAndStoreUsers = async () => {
       try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/users');
-        const data = await response.json(); // Parse the JSON response
-        setUsers(data); // Update users state with fetched data
+        const isEmpty = await isUsersSubcollectionEmpty(goalId);
+
+        if (isEmpty) {
+          const response = await fetch('https://jsonplaceholder.typicode.com/users');
+          const data = await response.json();
+          await addUsersToSubcollection(goalId, data); // Store users in Firestore
+          setUsers(data); // Update state with fetched users
+        } else {
+          console.log('Users already exist in the subcollection.');
+        }
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching or storing users:', error);
       } finally {
-        setLoading(false); // Stop the loading indicator
+        setLoading(false);
       }
     };
 
-    fetchUsers(); // Call the async function to fetch data
-  }, []); // Run once on component mount
+    fetchAndStoreUsers();
+  }, [goalId]);
 
-  // Show a loading indicator while data is being fetched
   if (loading) {
     return <ActivityIndicator size="large" color="#007BFF" style={styles.loader} />;
   }
 
-  // Render the users list using FlatList
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Users Associated with Goals</Text>
+      <Text style={styles.header}>Users Associated with Goal</Text>
       <FlatList
-        data={users} // Set the data source for the FlatList
-        keyExtractor={(item) => item.id.toString()} // Extract unique key for each item
+        data={users}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.userItem}>
             <Text style={styles.userName}>{item.name}</Text>
+            <Text style={styles.userEmail}>{item.email}</Text>
           </View>
         )}
       />
@@ -45,7 +50,6 @@ const GoalUsers = () => {
   );
 };
 
-// Component styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -76,6 +80,10 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '600',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#555',
   },
 });
 

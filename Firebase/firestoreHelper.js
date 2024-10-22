@@ -1,11 +1,11 @@
 // Import Firestore functions
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore'; 
-import { database } from './firebaseSetup'; // Import the Firestore instance
+import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { database } from './firebaseSetup'; // Firestore instance
 
 // Add a new goal to Firestore
 export async function writeToDB(goal) {
   try {
-    await addDoc(collection(database, 'goals'), goal); // Add the goal to the 'goals' collection
+    await addDoc(collection(database, 'goals'), goal);
   } catch (err) {
     console.log(err);
   }
@@ -14,18 +14,36 @@ export async function writeToDB(goal) {
 // Delete a goal from Firestore
 export async function deleteFromDB(id) {
   try {
-    await deleteDoc(doc(database, 'goals', id)); // Delete the document from 'goals' collection
+    await deleteDoc(doc(database, 'goals', id));
   } catch (err) {
     console.log(err);
   }
 }
 
-// Update a goal to set the warning flag to true
+// Update goal with a warning flag
 export async function setWarningFlag(id) {
   try {
-    const goalRef = doc(database, 'goals', id); // Get a reference to the document
-    await updateDoc(goalRef, { warning: true }); // Update the document with the warning flag
+    const goalRef = doc(database, 'goals', id);
+    await updateDoc(goalRef, { warning: true });
   } catch (err) {
     console.log(err);
   }
+}
+
+// Add user data to the "users" subcollection of a specific goal
+export async function addUsersToSubcollection(goalId, users) {
+  try {
+    const usersCollectionRef = collection(database, 'goals', goalId, 'users');
+    const promises = users.map(user => addDoc(usersCollectionRef, user));
+    await Promise.all(promises); // Add all users in parallel
+  } catch (err) {
+    console.log('Error adding users to subcollection:', err);
+  }
+}
+
+// Check if users subcollection is empty
+export async function isUsersSubcollectionEmpty(goalId) {
+  const usersCollectionRef = collection(database, 'goals', goalId, 'users');
+  const querySnapshot = await getDocs(usersCollectionRef);
+  return querySnapshot.empty; // Return true if no documents are found
 }

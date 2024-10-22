@@ -1,24 +1,17 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import PressableButton from './PressableButton'; // Import the reusable PressableButton component
-import { setWarningFlag } from '../Firebase/firestoreHelper'; // Import the Firestore helper function
-import GoalUsers from './GoalUsers'; // Import GoalUsers component
+import PressableButton from './PressableButton';
+import { setWarningFlag } from '../Firebase/firestoreHelper';
+import GoalUsers from './GoalUsers';
 
-// This component displays the goal details
 export default function GoalDetails({ route, navigation }) {
-  // Retrieve goal details from route params
   const { goal } = route.params;
-
-  // Local state to manage the text color
   const [textColor, setTextColor] = useState('black');
 
-  // Function to handle the "Warning" button press
   const handleWarningPress = async () => {
-    // Update text color to red and change header title to "Warning!"
     setTextColor('red');
     navigation.setOptions({ title: 'Warning!' });
 
-    // Set the warning flag in Firestore
     try {
       await setWarningFlag(goal.id);
       console.log(`Warning flag set for goal with id: ${goal.id}`);
@@ -27,17 +20,13 @@ export default function GoalDetails({ route, navigation }) {
     }
   };
 
-  // Add the warning icon button in the header when the component mounts
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <PressableButton
-          iconName="warning" // Warning icon
-          onPress={handleWarningPress} // Call handleWarningPress on click
-          customStyles={{
-            backgroundColor: 'transparent',
-            padding: 10,
-          }}
+          iconName="warning"
+          onPress={handleWarningPress}
+          customStyles={{ backgroundColor: 'transparent', padding: 10 }}
         />
       ),
     });
@@ -48,27 +37,24 @@ export default function GoalDetails({ route, navigation }) {
       <Text style={[styles.header, { color: textColor }]}>Details of {goal.text}</Text>
       <Text style={[styles.text, { color: textColor }]}>ID: {goal.id}</Text>
 
-      {/* Button to push more details onto the stack */}
       <Button
         title="More details"
         onPress={() => navigation.push('Details', { goal })}
         color="#007BFF"
       />
 
-      {/* Render the GoalUsers component */}
-      <GoalUsers />
+      {/* Pass the goal ID to GoalUsers */}
+      <GoalUsers goalId={goal.id} />
     </View>
   );
 }
 
-// Styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   header: {
     fontSize: 24,
