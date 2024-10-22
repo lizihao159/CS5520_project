@@ -1,34 +1,32 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import PressableButton from './PressableButton'; // Import the reusable PressableButton component
+import PressableButton from './PressableButton';
+import { setWarningFlag } from '../Firebase/firestoreHelper';
+import GoalUsers from './GoalUsers';
 
-// This component will display details of the goal
 export default function GoalDetails({ route, navigation }) {
-  // Retrieve the goal details from route params
   const { goal } = route.params;
-
-  // Local state to manage the text color
   const [textColor, setTextColor] = useState('black');
 
-  // Function to handle the "Warning" button press
-  const handleWarningPress = () => {
-    // Change the text color to red
+  const handleWarningPress = async () => {
     setTextColor('red');
-    // Update the header title to "Warning!"
     navigation.setOptions({ title: 'Warning!' });
+
+    try {
+      await setWarningFlag(goal.id);
+      console.log(`Warning flag set for goal with id: ${goal.id}`);
+    } catch (error) {
+      console.error('Error setting warning flag:', error);
+    }
   };
 
-  // Use useLayoutEffect to add the header button when the component mounts
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <PressableButton
-          iconName="warning" // Use warning icon
+          iconName="warning"
           onPress={handleWarningPress}
-          customStyles={{
-            backgroundColor: 'transparent', // Transparent background for the header button
-            padding: 10,
-          }}
+          customStyles={{ backgroundColor: 'transparent', padding: 10 }}
         />
       ),
     });
@@ -39,8 +37,14 @@ export default function GoalDetails({ route, navigation }) {
       <Text style={[styles.header, { color: textColor }]}>Details of {goal.text}</Text>
       <Text style={[styles.text, { color: textColor }]}>ID: {goal.id}</Text>
 
-      {/* More Details button */}
-      <Button title="More details" onPress={() => navigation.push('Details', { goal })} color="#007BFF" />
+      <Button
+        title="More details"
+        onPress={() => navigation.push('Details', { goal })}
+        color="#007BFF"
+      />
+
+      {/* Pass the goal ID to GoalUsers */}
+      <GoalUsers goalId={goal.id} />
     </View>
   );
 }
@@ -49,9 +53,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   header: {
     fontSize: 24,

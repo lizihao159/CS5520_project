@@ -4,7 +4,7 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
 import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import writeToDB and deleteFromDB functions
 import PressableButton from './PressableButton'; // Import the PressableButton component
@@ -26,8 +26,11 @@ export default function Home({ navigation }) {
       setGoals(updatedGoals); // Update the state with the fetched documents, including the Firestore ID
     });
 
-    return () => unsubscribe(); // Cleanup the listener on component unmount
-  }, []);
+    // Detach the listener when the component unmounts
+    return () => {
+      unsubscribe(); // Clean up the listener
+    };
+  }, []); // Empty dependency array, so this runs once on mount and cleans up on unmount
 
   // Handle input data by adding a new goal to Firestore
   const handleInputData = async (text) => {
@@ -50,7 +53,10 @@ export default function Home({ navigation }) {
     }
   };
 
-  // Delete all goals from Firestore
+  const handleCancel = () => {
+    setModalVisible(false);
+  };
+
   const handleDeleteAllGoals = async () => {
     Alert.alert(
       'Delete All Goals',
@@ -74,10 +80,6 @@ export default function Home({ navigation }) {
       ],
       { cancelable: true }
     );
-  };
-
-  const handleCancel = () => {
-    setModalVisible(false);
   };
 
   // Modify the renderSeparator to handle highlighted state
