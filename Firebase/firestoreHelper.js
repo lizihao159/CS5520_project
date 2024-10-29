@@ -1,13 +1,15 @@
 // Import Firestore functions
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
-import { database } from './firebaseSetup'; // Firestore instance
+import { auth, database } from './firebaseSetup'; // Firestore instance
 
 // Add a new goal to Firestore
 export async function writeToDB(goal) {
   try {
-    await addDoc(collection(database, 'goals'), goal);
+    // Attach the current user's UID as the owner
+    const goalWithOwner = { ...goal, owner: auth.currentUser.uid };
+    await addDoc(collection(database, 'goals'), goalWithOwner);
   } catch (err) {
-    console.log(err);
+    console.error('Error writing to Firestore:', err);
   }
 }
 

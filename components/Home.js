@@ -4,9 +4,9 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { database } from '../Firebase/firebaseSetup'; // Import Firestore database
-import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import writeToDB and deleteFromDB functions
+import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import query and where
+import { auth, database } from '../Firebase/firebaseSetup'; // Import Firestore and Auth instance
+import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import Firestore helpers
 import PressableButton from './PressableButton'; // Import the PressableButton component
 
 export default function Home({ navigation }) {
@@ -14,48 +14,60 @@ export default function Home({ navigation }) {
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Listen for real-time updates from Firestore
+  // Listen for real-time updates from Firestore with query
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(database, 'goals'), (querySnapshot) => {
-      const updatedGoals = [];
-      querySnapshot.forEach((doc) => {
-        // Use spread syntax to add the Firestore document ID to each goal object
-        const goal = { id: doc.id, ...doc.data() };
-        updatedGoals.push(goal);
-      });
-      setGoals(updatedGoals); // Update the state with the fetched documents, including the Firestore ID
-    });
+    const user = auth.currentUser;
 
-    // Detach the listener when the component unmounts
-    return () => {
-      unsubscribe(); // Clean up the listener
-    };
-  }, []); // Empty dependency array, so this runs once on mount and cleans up on unmount
+    if (!user) {
+      console.warn('No user is logged in');
+      return; // Exit if no user is logged in
+    }
 
-  // Handle input data by adding a new goal to Firestore
+    const q = query(
+      collection(database, 'goals'),
+      where('owner', '==', user.uid) // Only retrieve goals belonging to the current user
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const updatedGoals = [];
+        querySnapshot.forEach((doc) => {
+          const goal = { id: doc.id, ...doc.data() };
+          updatedGoals.push(goal);
+        });
+        setGoals(updatedGoals); // Update state with user-specific goals
+      },
+      (error) => {
+        console.error('Error retrieving goals:', error);
+        Alert.alert('Error', 'You do not have permission to view these goals.');
+      }
+    );
+
+    return () => unsubscribe(); // Detach listener when component unmounts
+  }, []);
+
   const handleInputData = async (text) => {
-    const newGoal = { text }; // Only text is needed as Firestore will handle the ID
+    const newGoal = { text, owner: auth.currentUser.uid }; // Attach owner's UID to goal
     try {
-      await writeToDB(newGoal); // Add the new goal to Firestore
-      setModalVisible(false); // Close the modal
+      await writeToDB(newGoal);
+      setModalVisible(false);
     } catch (error) {
       console.error('Error adding goal:', error);
+      Alert.alert('Error', 'Failed to add goal. Please try again.');
     }
   };
 
-  // Delete goal from Firestore and update the state
   const handleDeleteGoal = async (goalId) => {
     try {
-      await deleteFromDB(goalId); // Call deleteFromDB to delete the document from Firestore
-      // No need to update the state manually as onSnapshot will handle this
+      await deleteFromDB(goalId); // Call Firestore delete function
     } catch (error) {
       console.error('Error deleting goal:', error);
+      Alert.alert('Error', 'Failed to delete goal. Please try again.');
     }
   };
 
-  const handleCancel = () => {
-    setModalVisible(false);
-  };
+  const handleCancel = () => setModalVisible(false);
 
   const handleDeleteAllGoals = async () => {
     Alert.alert(
@@ -67,13 +79,17 @@ export default function Home({ navigation }) {
           text: 'Yes',
           onPress: async () => {
             try {
-              const querySnapshot = await getDocs(collection(database, 'goals'));
-              // Loop through all documents and delete them
+              const q = query(
+                collection(database, 'goals'),
+                where('owner', '==', auth.currentUser.uid) // Only delete the user's own goals
+              );
+              const querySnapshot = await getDocs(q);
               querySnapshot.forEach(async (doc) => {
-                await deleteFromDB(doc.id); // Delete each document
+                await deleteFromDB(doc.id);
               });
             } catch (error) {
               console.error('Error deleting all goals:', error);
+              Alert.alert('Error', 'Failed to delete all goals. Please try again.');
             }
           },
         },
@@ -82,30 +98,26 @@ export default function Home({ navigation }) {
     );
   };
 
-  // Modify the renderSeparator to handle highlighted state
   const renderSeparator = ({ highlighted }) => (
     <View
       style={[
         styles.separator,
-        highlighted ? styles.highlightedSeparator : null, // Change separator color when highlighted
+        highlighted ? styles.highlightedSeparator : null,
       ]}
     />
   );
 
-  // Modify the renderItem function to use separators and change their appearance when pressed
   const renderItem = ({ item, separators }) => (
     <GoalItem
       goal={item}
-      onDelete={() => handleDeleteGoal(item.id)} // Pass the goal's ID to handle deletion
-      onNavigate={() => navigateToDetails(item)} // Pass goal as argument
-      onHighlight={() => separators.highlight()} // Highlight separator when item is pressed
-      onUnhighlight={() => separators.unhighlight()} // Unhighlight separator when released
+      onDelete={() => handleDeleteGoal(item.id)}
+      onNavigate={() => navigateToDetails(item)}
+      onHighlight={() => separators.highlight()}
+      onUnhighlight={() => separators.unhighlight()}
     />
   );
 
-  // Function to navigate to goal details
   const navigateToDetails = (goal) => {
-    // Pass the goal object as a param
     navigation.navigate('Details', { goal });
   };
 
@@ -113,15 +125,13 @@ export default function Home({ navigation }) {
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top section */}
       <View style={styles.topSection}>
-        <Header name={appName}></Header>
+        <Header name={appName} />
 
-        {/* Add a Goal button with custom styles */}
-        <PressableButton 
-          title="Add a Goal" 
-          onPress={() => setModalVisible(true)} 
-          customStyles={styles.addButton} // Custom styles for Add a Goal
+        <PressableButton
+          title="Add a Goal"
+          onPress={() => setModalVisible(true)}
+          customStyles={styles.addButton}
         />
       </View>
 
@@ -147,19 +157,23 @@ export default function Home({ navigation }) {
         ListFooterComponent={() =>
           goals.length > 0 && (
             <View style={styles.deleteAllContainer}>
-              {/* Delete All button with custom styles */}
-              <PressableButton 
-                title="Delete all" 
-                onPress={handleDeleteAllGoals} 
-                customStyles={styles.deleteAllButton} // Custom styles for Delete All
+              <PressableButton
+                title="Delete all"
+                onPress={handleDeleteAllGoals}
+                customStyles={styles.deleteAllButton}
               />
             </View>
           )
         }
-        ItemSeparatorComponent={renderSeparator} // Update the ItemSeparatorComponent to use highlighted state
+        ItemSeparatorComponent={renderSeparator}
       />
 
-      <Input autoFocus={true} isVisible={modalVisible} onConfirm={handleInputData} onCancel={handleCancel} />
+      <Input
+        autoFocus={true}
+        isVisible={modalVisible}
+        onConfirm={handleInputData}
+        onCancel={handleCancel}
+      />
     </SafeAreaView>
   );
 }
@@ -212,12 +226,12 @@ const styles = StyleSheet.create({
   separator: {
     height: 2,
     borderRadius: 6,
-    backgroundColor: 'grey', // Default color of the separator line
+    backgroundColor: 'grey',
   },
   highlightedSeparator: {
-    backgroundColor: 'transparent', // Transparent background
-    borderBottomWidth: 2, // Change the border width
-    borderBottomColor: '#007BFF', // Change the border color (separator color)
+    backgroundColor: 'transparent',
+    borderBottomWidth: 2,
+    borderBottomColor: '#007BFF',
   },
   addButton: {
     backgroundColor: '#007BFF',

@@ -13,7 +13,15 @@ export default function Login({ navigation }) {
     return emailRegex.test(email);
   };
 
+  // Helper function to validate password strength
+  const validatePassword = (password) => {
+    // Password must be at least 6 characters and contain letters or numbers
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
+    return passwordRegex.test(password);
+  };
+
   const handleLogin = async () => {
+    // Basic input validation
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
@@ -24,17 +32,21 @@ export default function Login({ navigation }) {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters.');
+    if (!validatePassword(password)) {
+      Alert.alert(
+        'Weak Password',
+        'Password must be at least 6 characters long and contain letters and numbers.'
+      );
       return;
     }
 
+    // Attempt to log in with Firebase authentication
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('Logged in user:', user);
       Alert.alert('Success', 'Logged in successfully!');
-      navigation.navigate('Home');
+      navigation.navigate('Home'); // Navigate to Home screen on success
     } catch (error) {
       console.error('Error logging in:', error);
 
@@ -53,10 +65,9 @@ export default function Login({ navigation }) {
           Alert.alert('Error', 'Too many failed attempts. Please try again later.');
           break;
         case 'auth/invalid-credential':
-          Alert.alert('Error', 'Invalid credentials. Please check your input and try again.');
+          Alert.alert('Error', 'Invalid credentials. Please check your input.');
           break;
         default:
-          // Log unexpected errors and show a fallback alert
           console.error('Unhandled Firebase error:', error);
           Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
           break;
