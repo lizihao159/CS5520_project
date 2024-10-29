@@ -1,22 +1,66 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { auth } from '../Firebase/firebaseSetup'; // Import the Auth instance
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Import the login function
+import { auth } from '../Firebase/firebaseSetup'; // Firebase Auth instance
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import login function
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Helper function to validate email format
+  const validateEmail = (email) => {
+    const emailRegex = /\S+@\S+\.\S+/;
+    return emailRegex.test(email);
+  };
+
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters.');
+      return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('Logged in user:', user);
       Alert.alert('Success', 'Logged in successfully!');
-      navigation.navigate('Home'); // Navigate to Home screen on success
+      navigation.navigate('Home');
     } catch (error) {
       console.error('Error logging in:', error);
-      Alert.alert('Error', error.message); // Display the error message
+
+      // Handle known Firebase authentication errors
+      switch (error.code) {
+        case 'auth/user-not-found':
+          Alert.alert('Error', 'No user found with this email.');
+          break;
+        case 'auth/wrong-password':
+          Alert.alert('Error', 'Incorrect password. Please try again.');
+          break;
+        case 'auth/invalid-email':
+          Alert.alert('Error', 'Invalid email format.');
+          break;
+        case 'auth/too-many-requests':
+          Alert.alert('Error', 'Too many failed attempts. Please try again later.');
+          break;
+        case 'auth/invalid-credential':
+          Alert.alert('Error', 'Invalid credentials. Please check your input and try again.');
+          break;
+        default:
+          // Log unexpected errors and show a fallback alert
+          console.error('Unhandled Firebase error:', error);
+          Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
+          break;
+      }
     }
   };
 
@@ -29,6 +73,7 @@ export default function Login({ navigation }) {
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
+        keyboardType="email-address"
       />
 
       <Text style={styles.label}>Password</Text>
