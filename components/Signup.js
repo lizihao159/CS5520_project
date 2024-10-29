@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { auth } from '../Firebase/firebaseSetup'; // Import the Auth instance
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import the createUser function
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
-    if (password === confirmPassword) {
-      console.log('Registered:', email);
-      // Add authentication logic here
-    } else {
-      console.log('Passwords do not match');
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match!');
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('Registered user:', user);
+      Alert.alert('Success', 'User registered successfully!');
+      navigation.navigate('Login'); // Navigate to Login screen
+    } catch (error) {
+      console.error('Error registering user:', error);
+      Alert.alert('Error', error.message); // Show error message
     }
   };
 
@@ -34,10 +45,10 @@ export default function Signup({ navigation }) {
         onChangeText={setPassword}
       />
 
-      <Text style={styles.label}>Confirm password</Text>
+      <Text style={styles.label}>Confirm Password</Text>
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Confirm Password"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}

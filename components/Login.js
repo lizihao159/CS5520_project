@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { auth } from '../Firebase/firebaseSetup'; // Import the Auth instance
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import the login function
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    console.log('Logged in:', email);
-    // Add authentication logic here
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('Logged in user:', user);
+      Alert.alert('Success', 'Logged in successfully!');
+      navigation.navigate('Home'); // Navigate to Home screen on success
+    } catch (error) {
+      console.error('Error logging in:', error);
+      Alert.alert('Error', error.message); // Display the error message
+    }
   };
 
   return (
@@ -18,6 +28,7 @@ export default function Login({ navigation }) {
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
+        autoCapitalize="none"
       />
 
       <Text style={styles.label}>Password</Text>
