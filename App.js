@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Alert } from 'react-native';
 import Home from './components/Home';
 import GoalDetails from './components/GoalDetails';
-import PressableButton from './components/PressableButton'; // Import the reusable PressableButton component
+import Login from './components/Login'; // Import Login screen
+import Signup from './components/Signup'; // Import Signup screen
+import PressableButton from './components/PressableButton'; // Import reusable PressableButton component
 
 // Create the stack navigator
 const Stack = createNativeStackNavigator();
@@ -13,37 +15,46 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
-        // Unified header styling for all screens
+        initialRouteName="Login" // Set initial route to Login screen
         screenOptions={{
-          headerStyle: { backgroundColor: 'purple' }, // Consistent header background color
-          headerTintColor: 'white', // Consistent header font color
-          headerTitleStyle: { fontWeight: 'bold', fontSize: 22 }, // Consistent header title style
+          headerStyle: { backgroundColor: 'purple' }, // Unified header background color
+          headerTintColor: 'white', // Header text color
+          headerTitleStyle: { fontWeight: 'bold', fontSize: 22 }, // Title text styling
         }}
       >
-        {/* Home Screen with default header options */}
+        {/* Login Screen */}
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{ title: 'Login' }}
+        />
+
+        {/* Signup Screen */}
+        <Stack.Screen
+          name="Signup"
+          component={Signup}
+          options={{ title: 'Signup' }}
+        />
+
+        {/* Home Screen */}
         <Stack.Screen
           name="Home"
           component={Home}
-          options={{
-            title: 'Home',
-          }}
+          options={{ title: 'Home' }}
         />
-        
-        {/* GoalDetails screen with dynamic header title */}
+
+        {/* GoalDetails Screen with dynamic header */}
         <Stack.Screen
           name="Details"
           component={GoalDetails}
           options={({ route, navigation }) => ({
-            title: route.params.goal.text, 
-            
-            // Add a PressableButton with an icon to the right side of the header
+            title: route.params.goal.text, // Use goal text as title
             headerRight: () => (
               <PressableButton
-                iconName="warning" // Only pass iconName to show the icon
+                iconName="warning"
                 onPress={() => Alert.alert('Warning', 'This is a warning message')}
                 customStyles={{
-                  backgroundColor: 'transparent', // Transparent background for the header button
+                  backgroundColor: 'transparent',
                   padding: 10,
                 }}
               />
