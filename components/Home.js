@@ -56,8 +56,8 @@ export default function Home({ navigation }) {
     return () => unsubscribe(); // Detach listener when component unmounts
   }, [showPermissionAlert]);
 
-  const handleInputData = async (text) => {
-    const newGoal = { text, owner: auth.currentUser.uid }; // Attach owner's UID to goal
+  const handleInputData = async ({ text, imageUri }) => {
+    const newGoal = { text, imageUri, owner: auth.currentUser.uid }; // Attach text, image URI, and owner's UID
     try {
       await writeToDB(newGoal);
       setModalVisible(false);

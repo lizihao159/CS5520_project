@@ -1,63 +1,46 @@
 import React, { useState } from 'react';
-import { View, Button, Alert, Image, StyleSheet } from 'react-native';
+import { View, Button, Image, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function ImageManager() {
+export default function ImageManager({ onImageTaken }) {
   const [imageUri, setImageUri] = useState(null);
-  const [permissionResponse, requestPermission] = ImagePicker.useCameraPermissions();
 
-  // Function to verify camera permissions
-  const verifyPermission = async () => {
-    if (permissionResponse?.granted) {
-      return true; // Permission already granted
-    }
-
-    // Request permission if not already granted
-    const response = await requestPermission();
-    return response.granted;
-  };
-
-  // Handler to take an image
   const takeImageHandler = async () => {
-    const hasPermission = await verifyPermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Required', 'Camera access is required to take pictures.');
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("You've refused to allow this app to access your camera!");
       return;
     }
 
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.5,
+    });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri); // Store the uri of the taken image
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      Alert.alert('Error', 'Unable to access the camera. Please try again.');
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+      onImageTaken(uri); // Call the callback function with the image URI
     }
   };
 
   return (
     <View style={styles.container}>
       <Button title="Take Image" onPress={takeImageHandler} />
-      {imageUri && <Image source={{ uri: imageUri }} style={styles.imagePreview} />}
+      {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
     alignItems: 'center',
+    marginVertical: 10,
   },
-  imagePreview: {
-    width: 200,
-    height: 200,
+  image: {
+    width: 100,
+    height: 100,
     marginTop: 10,
-    borderRadius: 10,
   },
 });
