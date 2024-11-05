@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TextInput, Text, View, Button, Modal, StyleSheet, Alert, Image } from 'react-native';
+import ImageManager from './ImageManager';
 
 export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
     const [text, setText] = useState('');
+    const [imageUri, setImageUri] = useState(null); // Store image URI here
     const [isFocused, setIsFocused] = useState(false);
     const [message, setMessage] = useState('');
     const [isConfirmDisabled, setIsConfirmDisabled] = useState(true);
@@ -31,8 +33,14 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
 
     // Handle Confirm button press
     const handleConfirm = () => {
-        onConfirm(text); // Pass text to the parent via callback
+        onConfirm({ text, imageUri }); // Pass text and image URI to Home.js
         setText(''); // Clear the input
+        setImageUri(null); // Clear the image URI after confirmation
+    };
+
+    // Callback to receive the image URI from ImageManager
+    const handleImageTaken = (uri) => {
+        setImageUri(uri);
     };
 
     // Handle Cancel button press with Alert message
@@ -50,6 +58,7 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
                     onPress: () => {
                         onCancel(); // Call the cancel callback
                         setText(''); // Clear the input
+                        setImageUri(null); // Clear the image URI on cancel
                     }
                 }
             ]
@@ -69,18 +78,6 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
         >
             <View style={styles.modalBackground}>
                 <View style={styles.innerContainer}>
-                    {/* Two images */}
-                    <Image
-                        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2617/2617812.png' }} // url image
-                        style={styles.image}
-                        alt="Target Icon from URL"
-                    />
-                    <Image
-                        source={require('../assets/target.png')} // Local image
-                        style={styles.image}
-                        alt="Local Target Icon"
-                    />
-
                     <TextInput
                         ref={inputRef}
                         placeholder="Type something"
@@ -98,6 +95,9 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
                     {!isFocused && message ? (
                         <Text style={styles.message}>{message}</Text>
                     ) : null}
+
+                    {/* Render ImageManager and pass handleImageTaken as a prop */}
+                    <ImageManager onImageTaken={handleImageTaken} />
 
                     {/* Button Row for Confirm and Cancel */}
                     <View style={styles.buttonRow}>
@@ -152,10 +152,5 @@ const styles = StyleSheet.create({
     },
     buttonSpacing: {
         width: 20, 
-    },
-    image: {
-        width: 100,
-        height: 100,
-        marginBottom: 20,
     },
 });

@@ -4,7 +4,7 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import query and where
+import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'; // Import necessary Firestore functions
 import { auth, database } from '../Firebase/firebaseSetup'; // Import Firestore and Auth instance
 import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import Firestore helpers
 import PressableButton from './PressableButton'; // Import the PressableButton component
@@ -13,6 +13,7 @@ export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false); // State to prevent repeated alerts
 
   // Listen for real-time updates from Firestore with query
   useEffect(() => {
@@ -40,15 +41,23 @@ export default function Home({ navigation }) {
       },
       (error) => {
         console.error('Error retrieving goals:', error);
-        Alert.alert('Error', 'You do not have permission to view these goals.');
+        if (!showPermissionAlert) {
+          setShowPermissionAlert(true);
+          Alert.alert('Error', 'You do not have permission to view these goals.', [
+            {
+              text: 'OK',
+              onPress: () => setShowPermissionAlert(false),
+            },
+          ]);
+        }
       }
     );
 
     return () => unsubscribe(); // Detach listener when component unmounts
-  }, []);
+  }, [showPermissionAlert]);
 
-  const handleInputData = async (text) => {
-    const newGoal = { text, owner: auth.currentUser.uid }; // Attach owner's UID to goal
+  const handleInputData = async ({ text, imageUri }) => {
+    const newGoal = { text, imageUri, owner: auth.currentUser.uid }; // Attach text, image URI, and owner's UID
     try {
       await writeToDB(newGoal);
       setModalVisible(false);
