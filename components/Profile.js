@@ -1,27 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, Button } from 'react-native';
-import { auth } from '../Firebase/firebaseSetup'; // Firebase Auth instance
-import { signOut } from 'firebase/auth'; // Sign out function
-import LocationManager from './LocationManager'; // Import the LocationManager component
+import { auth } from '../Firebase/firebaseSetup';
+import { signOut } from 'firebase/auth';
+import LocationManager from './LocationManager';
 
 export default function Profile({ navigation }) {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Fetch the current user
+  // Fetch the current user from Firebase Auth
   useEffect(() => {
     const currentUser = auth.currentUser;
-    if (currentUser) {
-      setUser(currentUser);
-    }
+    if (currentUser) setUser(currentUser);
   }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Sign out user
+      await signOut(auth);
       Alert.alert('Success', 'You have been logged out!');
-
-      // Reset the navigation stack to the Login screen
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
@@ -43,10 +39,11 @@ export default function Profile({ navigation }) {
         <>
           <Text style={styles.header}>Welcome, {user.email}</Text>
           <Text>User ID: {user.uid}</Text>
-          
+
           {/* Render the LocationManager component */}
           <LocationManager onLocationFound={handleLocationFound} />
 
+          {/* Display the user's location coordinates */}
           {userLocation && (
             <View style={styles.locationInfo}>
               <Text>Your Latitude: {userLocation.coords.latitude}</Text>
