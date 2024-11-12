@@ -1,5 +1,5 @@
 // Import Firestore functions
-import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, getDoc, setDoc} from 'firebase/firestore';
 import { auth, database } from './firebaseSetup'; // Firestore instance
 
 // Add a new goal to Firestore
@@ -48,4 +48,32 @@ export async function isUsersSubcollectionEmpty(goalId) {
   const usersCollectionRef = collection(database, 'goals', goalId, 'users');
   const querySnapshot = await getDocs(usersCollectionRef);
   return querySnapshot.empty; // Return true if no documents are found
+}
+
+// Save user location to Firestore
+export async function saveUserLocation(location) {
+  try {
+    const userRef = doc(database, 'users', auth.currentUser.uid);
+    await setDoc(userRef, { location }, { merge: true });
+    console.log('User location saved successfully');
+  } catch (error) {
+    console.error('Error saving user location:', error);
+  }
+}
+
+// Fetch user location from Firestore
+export async function getUserLocation() {
+  try {
+    const userRef = doc(database, 'users', auth.currentUser.uid);
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      return docSnap.data().location;
+    } else {
+      console.log('No location found for user');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching user location:', error);
+    return null;
+  }
 }
