@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Button, Image, StyleSheet, Alert } from 'react-native';
+import { View, Button, StyleSheet, Alert, Image } from 'react-native';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
 import { mapsApiKey } from '@env';
 
 export default function LocationManager({ onLocationFound }) {
   const [location, setLocation] = useState(null);
+  const navigation = useNavigation();
 
   // Verify and request location permissions
   const verifyPermissions = async () => {
@@ -47,14 +49,16 @@ export default function LocationManager({ onLocationFound }) {
   return (
     <View style={styles.container}>
       <Button title="Find My Location" onPress={locateUserHandler} color="#1E90FF" />
-      
-      {/* Show the map if the location is available */}
+
       {location && (
-        <Image
-          source={{ uri: getMapUrl() }}
-          style={styles.mapImage}
-          resizeMode="cover"
-        />
+        <>
+          <Image source={{ uri: getMapUrl() }} style={styles.mapImage} resizeMode="cover" />
+          <Button
+            title="Open Interactive Map"
+            onPress={() => navigation.navigate('Map', { location })}
+            color="#32CD32"
+          />
+        </>
       )}
     </View>
   );

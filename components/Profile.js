@@ -8,7 +8,6 @@ export default function Profile({ navigation }) {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Fetch the current user from Firebase Auth
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (currentUser) setUser(currentUser);
@@ -28,7 +27,6 @@ export default function Profile({ navigation }) {
     }
   };
 
-  // Callback function to receive location from LocationManager
   const handleLocationFound = (location) => {
     setUserLocation(location);
   };
@@ -40,10 +38,8 @@ export default function Profile({ navigation }) {
           <Text style={styles.header}>Welcome, {user.email}</Text>
           <Text>User ID: {user.uid}</Text>
 
-          {/* Render the LocationManager component */}
           <LocationManager onLocationFound={handleLocationFound} />
 
-          {/* Display the user's location coordinates */}
           {userLocation && (
             <View style={styles.locationInfo}>
               <Text>Your Latitude: {userLocation.coords.latitude}</Text>
@@ -51,7 +47,6 @@ export default function Profile({ navigation }) {
             </View>
           )}
 
-          {/* Button to log out */}
           <Button title="Log Out" onPress={handleLogout} color="#FF6347" />
         </>
       ) : (
