@@ -4,29 +4,25 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'; // Import necessary Firestore functions
-import { auth, database } from '../Firebase/firebaseSetup'; // Import Firestore and Auth instance
-import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import Firestore helpers
-import PressableButton from './PressableButton'; // Import the PressableButton component
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { auth, database, storage } from '../Firebase/firebaseSetup';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper';
+import PressableButton from './PressableButton';
 
 export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [showPermissionAlert, setShowPermissionAlert] = useState(false); // State to prevent repeated alerts
 
   // Listen for real-time updates from Firestore with query
   useEffect(() => {
     const user = auth.currentUser;
-
-    if (!user) {
-      console.warn('No user is logged in');
-      return; // Exit if no user is logged in
-    }
+    if (!user) return;
 
     const q = query(
       collection(database, 'goals'),
-      where('owner', '==', user.uid) // Only retrieve goals belonging to the current user
+      where('owner', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
@@ -37,39 +33,65 @@ export default function Home({ navigation }) {
           const goal = { id: doc.id, ...doc.data() };
           updatedGoals.push(goal);
         });
-        setGoals(updatedGoals); // Update state with user-specific goals
+        setGoals(updatedGoals);
       },
       (error) => {
         console.error('Error retrieving goals:', error);
-        if (!showPermissionAlert) {
-          setShowPermissionAlert(true);
-          Alert.alert('Error', 'You do not have permission to view these goals.', [
-            {
-              text: 'OK',
-              onPress: () => setShowPermissionAlert(false),
-            },
-          ]);
-        }
+        Alert.alert('Error', 'You do not have permission to view these goals.');
       }
     );
 
-    return () => unsubscribe(); // Detach listener when component unmounts
-  }, [showPermissionAlert]);
+    return () => unsubscribe();
+  }, []);
 
-  const handleInputData = async ({ text, imageUri }) => {
-    const newGoal = { text, imageUri, owner: auth.currentUser.uid }; // Attach text, image URI, and owner's UID
+  // Function to handle input data and upload images
+// Function to handle input data and upload images
+const handleInputData = async ({ text, imageUri }) => {
+  const newGoal = { text, owner: auth.currentUser.uid };
+
+  // Check if there's an image URI
+  if (imageUri) {
     try {
-      await writeToDB(newGoal);
-      setModalVisible(false);
+      // Fetch the image from the local URI and convert it to a blob
+      const response = await fetch(imageUri);
+      if (!response.ok) {
+        throw new Error('Failed to fetch the image URI.');
+      }
+
+      const blob = await response.blob();
+
+      // Generate a unique image reference in Firebase Storage
+      const imageName = `goal_images/${auth.currentUser.uid}_${Date.now()}.jpg`;
+      const imageRef = ref(storage, imageName);
+
+      // Upload the image using uploadBytes
+      await uploadBytes(imageRef, blob);
+
+      // Get the download URL after uploading
+      const downloadURL = await getDownloadURL(imageRef);
+      newGoal.imageUri = downloadURL;
     } catch (error) {
-      console.error('Error adding goal:', error);
-      Alert.alert('Error', 'Failed to add goal. Please try again.');
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      return;
     }
-  };
+  }
+
+  // Save the goal with the image URL (if available) to Firestore
+  try {
+    await writeToDB(newGoal);
+    setModalVisible(false);
+  } catch (error) {
+    console.error('Error adding goal:', error);
+    Alert.alert('Error', 'Failed to add goal. Please try again.');
+  }
+};
+
+
 
   const handleDeleteGoal = async (goalId) => {
     try {
-      await deleteFromDB(goalId); // Call Firestore delete function
+      await deleteFromDB(goalId);
     } catch (error) {
       console.error('Error deleting goal:', error);
       Alert.alert('Error', 'Failed to delete goal. Please try again.');
@@ -78,51 +100,11 @@ export default function Home({ navigation }) {
 
   const handleCancel = () => setModalVisible(false);
 
-  const handleDeleteAllGoals = async () => {
-    Alert.alert(
-      'Delete All Goals',
-      'Are you sure you want to delete all goals?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes',
-          onPress: async () => {
-            try {
-              const q = query(
-                collection(database, 'goals'),
-                where('owner', '==', auth.currentUser.uid) // Only delete the user's own goals
-              );
-              const querySnapshot = await getDocs(q);
-              querySnapshot.forEach(async (doc) => {
-                await deleteFromDB(doc.id);
-              });
-            } catch (error) {
-              console.error('Error deleting all goals:', error);
-              Alert.alert('Error', 'Failed to delete all goals. Please try again.');
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  const renderSeparator = ({ highlighted }) => (
-    <View
-      style={[
-        styles.separator,
-        highlighted ? styles.highlightedSeparator : null,
-      ]}
-    />
-  );
-
-  const renderItem = ({ item, separators }) => (
+  const renderItem = ({ item }) => (
     <GoalItem
       goal={item}
       onDelete={() => handleDeleteGoal(item.id)}
       onNavigate={() => navigateToDetails(item)}
-      onHighlight={() => separators.highlight()}
-      onUnhighlight={() => separators.unhighlight()}
     />
   );
 
@@ -133,10 +115,8 @@ export default function Home({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-
       <View style={styles.topSection}>
         <Header name={appName} />
-
         <PressableButton
           title="Add a Goal"
           onPress={() => setModalVisible(true)}
@@ -156,25 +136,6 @@ export default function Home({ navigation }) {
             <Text style={styles.noGoalsText}>No goals to show</Text>
           </View>
         )}
-        ListHeaderComponent={() =>
-          goals.length > 0 && (
-            <View style={styles.goalsHeader}>
-              <Text style={styles.goalsHeaderText}>My Goal List</Text>
-            </View>
-          )
-        }
-        ListFooterComponent={() =>
-          goals.length > 0 && (
-            <View style={styles.deleteAllContainer}>
-              <PressableButton
-                title="Delete all"
-                onPress={handleDeleteAllGoals}
-                customStyles={styles.deleteAllButton}
-              />
-            </View>
-          )
-        }
-        ItemSeparatorComponent={renderSeparator}
       />
 
       <Input
@@ -219,39 +180,8 @@ const styles = StyleSheet.create({
     color: '#800080',
     textAlign: 'center',
   },
-  goalsHeader: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    backgroundColor: '#d8bfd8',
-  },
-  goalsHeaderText: {
-    fontSize: 22,
-    color: '#800080',
-  },
-  deleteAllContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  separator: {
-    height: 2,
-    borderRadius: 6,
-    backgroundColor: 'grey',
-  },
-  highlightedSeparator: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 2,
-    borderBottomColor: '#007BFF',
-  },
   addButton: {
     backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteAllButton: {
-    backgroundColor: '#800080',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,

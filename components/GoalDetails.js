@@ -1,50 +1,42 @@
-import React, { useLayoutEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import PressableButton from './PressableButton';
-import { setWarningFlag } from '../Firebase/firestoreHelper';
-import GoalUsers from './GoalUsers';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, Alert } from 'react-native';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../Firebase/firebaseSetup';
 
-export default function GoalDetails({ route, navigation }) {
+export default function GoalDetails({ route }) {
   const { goal } = route.params;
-  const [textColor, setTextColor] = useState('black');
+  const [imageUrl, setImageUrl] = useState(null);
 
-  const handleWarningPress = async () => {
-    setTextColor('red');
-    navigation.setOptions({ title: 'Warning!' });
+  // Fetch the download URL from Firebase Storage
+  useEffect(() => {
+    const fetchImageUrl = async () => {
+      if (goal.imageUri) {
+        try {
+          // Create a reference to the image using the stored path
+          const imageRef = ref(storage, goal.imageUri);
+          const downloadURL = await getDownloadURL(imageRef);
+          setImageUrl(downloadURL);
+        } catch (error) {
+          console.error('Error fetching image URL:', error);
+          Alert.alert('Error', 'Failed to fetch the image. Please try again.');
+        }
+      }
+    };
 
-    try {
-      await setWarningFlag(goal.id);
-      console.log(`Warning flag set for goal with id: ${goal.id}`);
-    } catch (error) {
-      console.error('Error setting warning flag:', error);
-    }
-  };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <PressableButton
-          iconName="warning"
-          onPress={handleWarningPress}
-          customStyles={{ backgroundColor: 'transparent', padding: 10 }}
-        />
-      ),
-    });
-  }, [navigation]);
+    fetchImageUrl();
+  }, [goal.imageUri]);
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.header, { color: textColor }]}>Details of {goal.text}</Text>
-      <Text style={[styles.text, { color: textColor }]}>ID: {goal.id}</Text>
-
-      <Button
-        title="More details"
-        onPress={() => navigation.push('Details', { goal })}
-        color="#007BFF"
-      />
-
-      {/* Pass the goal ID to GoalUsers */}
-      <GoalUsers goalId={goal.id} />
+      <Text style={styles.header}>Details of {goal.text}</Text>
+      <Text style={styles.text}>ID: {goal.id}</Text>
+      
+      {/* Display the image if the download URL is available */}
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.image} />
+      ) : (
+        <Text style={styles.loadingText}>Loading image...</Text>
+      )}
     </View>
   );
 }
@@ -53,8 +45,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   header: {
     fontSize: 24,
@@ -64,5 +57,16 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     marginBottom: 10,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginTop: 20,
+    borderRadius: 10,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: 'gray',
+    marginTop: 20,
   },
 });
