@@ -4,8 +4,9 @@ import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
 import GoalItem from './GoalItem';
-import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'; // Import necessary Firestore functions
-import { auth, database } from '../Firebase/firebaseSetup'; // Import Firestore and Auth instance
+import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import query and where
+import { auth, database, storage } from '../Firebase/firebaseSetup'; // Import Firestore, Auth, and Storage instance
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper'; // Import Firestore helpers
 import PressableButton from './PressableButton'; // Import the PressableButton component
 
@@ -13,7 +14,6 @@ export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [showPermissionAlert, setShowPermissionAlert] = useState(false); // State to prevent repeated alerts
 
   // Listen for real-time updates from Firestore with query
   useEffect(() => {
@@ -41,31 +41,65 @@ export default function Home({ navigation }) {
       },
       (error) => {
         console.error('Error retrieving goals:', error);
-        if (!showPermissionAlert) {
-          setShowPermissionAlert(true);
-          Alert.alert('Error', 'You do not have permission to view these goals.', [
-            {
-              text: 'OK',
-              onPress: () => setShowPermissionAlert(false),
-            },
-          ]);
-        }
+        Alert.alert('Error', 'You do not have permission to view these goals.');
       }
     );
 
     return () => unsubscribe(); // Detach listener when component unmounts
-  }, [showPermissionAlert]);
+  }, []);
 
   const handleInputData = async ({ text, imageUri }) => {
-    const newGoal = { text, imageUri, owner: auth.currentUser.uid }; // Attach text, image URI, and owner's UID
+    const newGoal = { text, owner: auth.currentUser.uid };
+  
+    if (imageUri) {
+      try {
+        // Fetch the image as a blob
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error("Failed to fetch the image URI.");
+        }
+  
+        const blob = await response.blob();
+  
+        // Create a unique image reference
+        const imageName = `goal_images/${auth.currentUser.uid}_${Date.now()}.jpg`;
+        const imageRef = ref(storage, imageName);
+  
+        // Upload the image
+        const uploadTask = uploadBytesResumable(imageRef, blob);
+        
+        await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            null,
+            reject,
+            () => {
+              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                newGoal.imageUri = downloadURL;
+                resolve();
+              }).catch((error) => {
+                console.error('Error fetching download URL:', error);
+                reject(error);
+              });
+            }
+          );
+        });
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        Alert.alert('Error', 'Image upload failed. Please check your connection and try again.');
+        return; // Stop further execution if image upload fails
+      }
+    }
+  
     try {
       await writeToDB(newGoal);
-      setModalVisible(false);
+      setModalVisible(false); // Only clear input and modal on success
     } catch (error) {
       console.error('Error adding goal:', error);
       Alert.alert('Error', 'Failed to add goal. Please try again.');
     }
   };
+  
 
   const handleDeleteGoal = async (goalId) => {
     try {
@@ -107,22 +141,12 @@ export default function Home({ navigation }) {
     );
   };
 
-  const renderSeparator = ({ highlighted }) => (
-    <View
-      style={[
-        styles.separator,
-        highlighted ? styles.highlightedSeparator : null,
-      ]}
-    />
-  );
-
-  const renderItem = ({ item, separators }) => (
+  // Render each goal item
+  const renderItem = ({ item }) => (
     <GoalItem
       goal={item}
       onDelete={() => handleDeleteGoal(item.id)}
       onNavigate={() => navigateToDetails(item)}
-      onHighlight={() => separators.highlight()}
-      onUnhighlight={() => separators.unhighlight()}
     />
   );
 
@@ -174,7 +198,7 @@ export default function Home({ navigation }) {
             </View>
           )
         }
-        ItemSeparatorComponent={renderSeparator}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
 
       <Input
@@ -234,13 +258,8 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 2,
-    borderRadius: 6,
     backgroundColor: 'grey',
-  },
-  highlightedSeparator: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 2,
-    borderBottomColor: '#007BFF',
+    width: '100%',
   },
   addButton: {
     backgroundColor: '#007BFF',

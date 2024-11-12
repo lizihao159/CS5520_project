@@ -10,7 +10,6 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
     const [isConfirmDisabled, setIsConfirmDisabled] = useState(true);
     const inputRef = useRef(null);
 
-    // This effect handles autoFocus if the prop is passed
     useEffect(() => {
         if (autoFocus && inputRef.current) {
             inputRef.current.focus();
@@ -33,9 +32,13 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
 
     // Handle Confirm button press
     const handleConfirm = () => {
-        onConfirm({ text, imageUri }); // Pass text and image URI to Home.js
-        setText(''); // Clear the input
-        setImageUri(null); // Clear the image URI after confirmation
+        if (imageUri || text) {  // Ensure there's data to save
+            onConfirm({ text, imageUri });
+            setText(''); // Clear the input
+            setImageUri(null); // Clear the image URI after confirmation
+        } else {
+            Alert.alert("Input Required", "Please enter text or take an image.");
+        }
     };
 
     // Callback to receive the image URI from ImageManager
@@ -43,29 +46,17 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
         setImageUri(uri);
     };
 
-    // Handle Cancel button press with Alert message
     const handleCancel = () => {
         Alert.alert(
             "Cancel Confirmation",
             "Are you sure you want to cancel?",
             [
-                {
-                    text: "No",
-                    style: "cancel"
-                },
-                {
-                    text: "OK", 
-                    onPress: () => {
-                        onCancel(); // Call the cancel callback
-                        setText(''); // Clear the input
-                        setImageUri(null); // Clear the image URI on cancel
-                    }
-                }
+                { text: "No", style: "cancel" },
+                { text: "OK", onPress: () => { onCancel(); setText(''); setImageUri(null); } }
             ]
         );
     };
 
-    // Disable confirm button until minimum characters are typed
     useEffect(() => {
         setIsConfirmDisabled(text.length < 3);
     }, [text]);
@@ -78,6 +69,17 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
         >
             <View style={styles.modalBackground}>
                 <View style={styles.innerContainer}>
+                    <Image
+                        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2617/2617812.png' }}
+                        style={styles.image}
+                        alt="Target Icon from URL"
+                    />
+                    <Image
+                        source={require('../assets/target.png')}
+                        style={styles.image}
+                        alt="Local Target Icon"
+                    />
+
                     <TextInput
                         ref={inputRef}
                         placeholder="Type something"
@@ -89,15 +91,20 @@ export default function Input({ autoFocus, onConfirm, onCancel, isVisible }) {
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                     />
-                    {isFocused && text.length > 0 ? (
+                    {isFocused && text.length > 0 && (
                         <Text style={styles.charCount}>Character count: {text.length}</Text>
-                    ) : null}
-                    {!isFocused && message ? (
+                    )}
+                    {!isFocused && message && (
                         <Text style={styles.message}>{message}</Text>
-                    ) : null}
+                    )}
 
                     {/* Render ImageManager and pass handleImageTaken as a prop */}
                     <ImageManager onImageTaken={handleImageTaken} />
+
+                    {/* Show image preview if available */}
+                    {imageUri && (
+                        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                    )}
 
                     {/* Button Row for Confirm and Cancel */}
                     <View style={styles.buttonRow}>
@@ -152,5 +159,15 @@ const styles = StyleSheet.create({
     },
     buttonSpacing: {
         width: 20, 
+    },
+    image: {
+        width: 100,
+        height: 100,
+        marginBottom: 20,
+    },
+    imagePreview: {
+        width: 150,
+        height: 150,
+        marginVertical: 10,
     },
 });
