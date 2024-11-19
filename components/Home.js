@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert, Platform } from 'react-native';
+import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert, Platform, Button } from 'react-native';
 import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
@@ -17,6 +17,7 @@ export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [pushToken, setPushToken] = useState(null);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -49,14 +50,13 @@ export default function Home({ navigation }) {
   // Fetch the push token and set up notifications
   useEffect(() => {
     const setupPushNotifications = async () => {
-      const hasPermission = await verifyPermission(); // Verify notification permissions
+      const hasPermission = await verifyPermission();
 
       if (!hasPermission) {
         Alert.alert('Permission Denied', 'You need to enable notifications to use this feature.');
         return;
       }
 
-      // Set up Android-specific notification channel
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'default',
@@ -65,13 +65,12 @@ export default function Home({ navigation }) {
       }
 
       try {
-        // Fetch the Expo push token
-        const { data: pushToken } = await Notifications.getExpoPushTokenAsync({
+        const { data: token } = await Notifications.getExpoPushTokenAsync({
           projectId: Constants.expoConfig.extra.eas.projectId,
         });
 
-        console.log('Expo Push Token:', pushToken);
-        // Typically, you would save the token to a database here
+        setPushToken(token);
+        console.log('Expo Push Token:', token);
       } catch (error) {
         console.error('Error fetching push token:', error);
         Alert.alert('Error', 'Failed to fetch push token. Please try again.');
@@ -81,7 +80,39 @@ export default function Home({ navigation }) {
     setupPushNotifications();
   }, []);
 
-  // Function to handle input data and upload images
+  // Function to send a push notification
+  const sendPushNotification = async () => {
+    if (!pushToken) {
+      Alert.alert('Error', 'Push token not available. Please try again.');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: pushToken,
+          title: 'Push Notification',
+          body: 'This is a push notification',
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'Push notification sent!');
+      } else {
+        const errorData = await response.json();
+        console.error('Error sending notification:', errorData);
+        Alert.alert('Error', 'Failed to send push notification.');
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      Alert.alert('Error', 'Failed to send push notification.');
+    }
+  };
+
   const handleInputData = async ({ text, imageUri }) => {
     const newGoal = { text, owner: auth.currentUser.uid };
 
@@ -169,6 +200,11 @@ export default function Home({ navigation }) {
         onConfirm={handleInputData}
         onCancel={handleCancel}
       />
+
+      {/* Button to send a push notification */}
+      <View style={styles.pushNotificationButtonContainer}>
+        <Button title="Send Push Notification" onPress={sendPushNotification} color="#007BFF" />
+      </View>
     </SafeAreaView>
   );
 }
@@ -212,5 +248,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pushNotificationButtonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    borderRadius: 6,
+    overflow: 'hidden',
   },
 });
