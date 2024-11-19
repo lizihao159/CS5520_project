@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications'; // Import the Notifications
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './Firebase/firebaseSetup';
 
@@ -11,7 +11,7 @@ import GoalDetails from './components/GoalDetails';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Profile from './components/Profile';
-import Map from './components/Map'; // Import the Map component
+import Map from './components/Map';
 import PressableButton from './components/PressableButton';
 
 // Configure notification handling
@@ -32,12 +32,26 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Listen to authentication state changes
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser || null);
       setLoading(false);
     });
 
     return unsubscribe;
+  }, []);
+
+  // Add notification received listener
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      Alert.alert(
+        "Notification Received",
+        `Title: ${notification.request.content.title}\nMessage: ${notification.request.content.body}`
+      );
+    });
+
+    // Cleanup listener on unmount
+    return () => subscription.remove();
   }, []);
 
   if (loading) {
