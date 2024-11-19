@@ -1,3 +1,4 @@
+import * as Notifications from 'expo-notifications'; // Import the Notifications API
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,6 +13,17 @@ import Signup from './components/Signup';
 import Profile from './components/Profile';
 import Map from './components/Map'; // Import the Map component
 import PressableButton from './components/PressableButton';
+
+// Configure notification handling
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldShowAlert: true, // Show a notification alert
+      shouldPlaySound: true, // Play a notification sound
+      shouldSetBadge: false, // Do not update the app badge
+    };
+  },
+});
 
 const Stack = createNativeStackNavigator();
 
@@ -87,7 +99,7 @@ export default function App() {
         })}
       />
       <Stack.Screen
-        name="Map" // Add the Map screen
+        name="Map"
         component={Map}
         options={{
           title: 'Map',
