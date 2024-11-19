@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, View, FlatList, Text, Alert, Platform } from 'react-native';
 import Header from './Header';
 import { useState, useEffect } from 'react';
 import Input from './Input';
@@ -9,13 +9,15 @@ import { auth, database, storage } from '../Firebase/firebaseSetup';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { writeToDB, deleteFromDB } from '../Firebase/firestoreHelper';
 import PressableButton from './PressableButton';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import { verifyPermission } from './NotificationManager';
 
 export default function Home({ navigation }) {
   const appName = 'Welcome to My awesome app!';
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Listen for real-time updates from Firestore with query
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -44,50 +46,73 @@ export default function Home({ navigation }) {
     return () => unsubscribe();
   }, []);
 
-  // Function to handle input data and upload images
-// Function to handle input data and upload images
-const handleInputData = async ({ text, imageUri }) => {
-  const newGoal = { text, owner: auth.currentUser.uid };
+  // Fetch the push token and set up notifications
+  useEffect(() => {
+    const setupPushNotifications = async () => {
+      const hasPermission = await verifyPermission(); // Verify notification permissions
 
-  // Check if there's an image URI
-  if (imageUri) {
-    try {
-      // Fetch the image from the local URI and convert it to a blob
-      const response = await fetch(imageUri);
-      if (!response.ok) {
-        throw new Error('Failed to fetch the image URI.');
+      if (!hasPermission) {
+        Alert.alert('Permission Denied', 'You need to enable notifications to use this feature.');
+        return;
       }
 
-      const blob = await response.blob();
+      // Set up Android-specific notification channel
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+        });
+      }
 
-      // Generate a unique image reference in Firebase Storage
-      const imageName = `goal_images/${auth.currentUser.uid}_${Date.now()}.jpg`;
-      const imageRef = ref(storage, imageName);
+      try {
+        // Fetch the Expo push token
+        const { data: pushToken } = await Notifications.getExpoPushTokenAsync({
+          projectId: Constants.expoConfig.extra.eas.projectId,
+        });
 
-      // Upload the image using uploadBytes
-      await uploadBytes(imageRef, blob);
+        console.log('Expo Push Token:', pushToken);
+        // Typically, you would save the token to a database here
+      } catch (error) {
+        console.error('Error fetching push token:', error);
+        Alert.alert('Error', 'Failed to fetch push token. Please try again.');
+      }
+    };
 
-      // Get the download URL after uploading
-      const downloadURL = await getDownloadURL(imageRef);
-      newGoal.imageUri = downloadURL;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image. Please try again.');
-      return;
+    setupPushNotifications();
+  }, []);
+
+  // Function to handle input data and upload images
+  const handleInputData = async ({ text, imageUri }) => {
+    const newGoal = { text, owner: auth.currentUser.uid };
+
+    if (imageUri) {
+      try {
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error('Failed to fetch the image URI.');
+        }
+
+        const blob = await response.blob();
+        const imageName = `goal_images/${auth.currentUser.uid}_${Date.now()}.jpg`;
+        const imageRef = ref(storage, imageName);
+        await uploadBytes(imageRef, blob);
+        const downloadURL = await getDownloadURL(imageRef);
+        newGoal.imageUri = downloadURL;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        Alert.alert('Error', 'Failed to upload image. Please try again.');
+        return;
+      }
     }
-  }
 
-  // Save the goal with the image URL (if available) to Firestore
-  try {
-    await writeToDB(newGoal);
-    setModalVisible(false);
-  } catch (error) {
-    console.error('Error adding goal:', error);
-    Alert.alert('Error', 'Failed to add goal. Please try again.');
-  }
-};
-
-
+    try {
+      await writeToDB(newGoal);
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error adding goal:', error);
+      Alert.alert('Error', 'Failed to add goal. Please try again.');
+    }
+  };
 
   const handleDeleteGoal = async (goalId) => {
     try {
