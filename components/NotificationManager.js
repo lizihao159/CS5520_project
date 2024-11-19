@@ -3,7 +3,27 @@ import { View, Button, StyleSheet, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 export default function NotificationManager() {
+  const verifyPermission = async () => {
+    // Get current notification permissions
+    const { granted } = await Notifications.getPermissionsAsync();
+
+    if (granted) {
+      return true; // Permissions already granted
+    }
+
+    // Request permissions if not already granted
+    const { granted: newGranted } = await Notifications.requestPermissionsAsync();
+    return newGranted; // Return whether permission is now granted
+  };
+
   const scheduleNotificationHandler = async () => {
+    const hasPermission = await verifyPermission(); // Check or request permissions
+
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'You need to enable notifications to use this feature.');
+      return;
+    }
+
     try {
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
@@ -12,7 +32,7 @@ export default function NotificationManager() {
           data: { info: 'Additional data can go here' },
         },
         trigger: {
-          seconds: 5, // Notification will trigger after 5 seconds
+          seconds: 5, // Trigger after 5 seconds
         },
       });
 
