@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert, Button } from 'react-native';
 import { auth } from '../Firebase/firebaseSetup';
 import { signOut } from 'firebase/auth';
 import LocationManager from './LocationManager';
+import NotificationManager from './NotificationManager';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export default function Profile() {
@@ -71,6 +72,9 @@ export default function Profile() {
               <Text>Selected Longitude: {selectedLocation.longitude}</Text>
             </View>
           )}
+
+          {/* Render the NotificationManager here */}
+          <NotificationManager />
 
           <Button title="Log Out" onPress={handleLogout} color="#FF6347" />
         </>
