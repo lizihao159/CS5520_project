@@ -54,6 +54,20 @@ export default function App() {
     return () => subscription.remove();
   }, []);
 
+  // Add notification interaction listener
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const { title, body, data } = response.notification.request.content;
+      Alert.alert(
+        "Notification Interaction",
+        `Title: ${title}\nMessage: ${body}\nData: ${JSON.stringify(data)}`
+      );
+    });
+
+    // Cleanup listener on unmount
+    return () => subscription.remove();
+  }, []);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
